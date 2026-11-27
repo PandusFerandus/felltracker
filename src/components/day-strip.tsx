@@ -24,6 +24,7 @@ export function DayStrip({ today, selected, entries, species, onSelect }: Props)
   const listRef = useRef<FlatList<DateKey>>(null);
   const centered = useRef(false);
 
+  const extraData = useMemo(() => ({ selected, entries }), [selected, entries]);
   const entryDates = useMemo(() => Object.keys(entries), [entries]);
   const days = useMemo(() => {
     const { from, to } = stripRange(today, entryDates);
@@ -58,7 +59,7 @@ export function DayStrip({ today, selected, entries, species, onSelect }: Props)
       getItemLayout={(_, index) => ({ length: STEP, offset: SIDE - GAP / 2 + index * STEP, index })}
       initialNumToRender={14}
       windowSize={7}
-      extraData={selected}
+      extraData={extraData}
       renderItem={({ item }) => (
         <StripDay
           day={item}
@@ -91,7 +92,7 @@ const StripDay = memo(function StripDay({ day, today, selected, entry, species, 
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`${day === today ? 'Heute, ' : ''}${longDate(day, today)}, ${entry ? 'mit Eintrag' : 'ohne Eintrag'}`}
-        accessibilityState={{ selected }}
+        aria-selected={selected}
         onPress={() => onSelect(day)}
         style={[styles.day, { backgroundColor: bg, borderColor: selected ? colors.primary : bg }]}>
         <Text style={[styles.label, future && styles.future]}>{stripLabel(day, today)}</Text>

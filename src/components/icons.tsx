@@ -52,3 +52,11 @@ export function LineIcon({ d, size = 28, color = colors.primary }: IconProps & {
     </Svg>
   );
 }
+
+export function CheckIcon({ size = 16, color = colors.onPrimary }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M5 12.5l4.5 4.5L19 7.5" />
+    </Svg>
+  );
+}

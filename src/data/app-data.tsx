@@ -2,7 +2,9 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 
 import { deviceStore } from './device-store';
 import type { DataStore } from './storage';
-import type { CustomItem, DateKey, DayEntry, Dog } from './types';
+import type { Draft } from './entry-logic';
+import { prepareEntry } from './entry-logic';
+import type { CategoryId, CustomItem, DateKey, DayEntry, Dog, SelectedItem } from './types';
 
 type AppData = {
   loading: boolean;
@@ -15,6 +17,15 @@ type AppData = {
   customItems: CustomItem[];
   createDog(name: string): Promise<Dog>;
   selectDog(id: string): Promise<void>;
+  /**
+   * Speichert den Tag des ausgewählten Hundes. Ein leerer Eintrag wird gelöscht.
+   * Ergebnis: 'saved', 'deleted' oder eine Fehlermeldung.
+   */
+  saveDay(date: DateKey, draft: Draft, future: boolean): Promise<{ result: 'saved' | 'deleted' } | { error: string }>;
+  addCustomItem(category: CategoryId, label: string): Promise<{ item: SelectedItem; existed: boolean }>;
+  /** Kurze Meldung für die Startseite, z. B. nach dem Speichern */
+  flash: string | null;
+  setFlash(msg: string | null): void;
 };
 
 const AppDataContext = createContext<AppData | null>(null);
@@ -26,6 +37,7 @@ export function AppDataProvider({ children, store = deviceStore }: { children: R
   const [activeDogId, setActiveDogId] = useState<string | null>(null);
   const [entries, setEntries] = useState<Record<DateKey, DayEntry>>({});
   const [customItems, setCustomItems] = useState<CustomItem[]>([]);
+  const [flash, setFlash] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -76,6 +88,35 @@ export function AppDataProvider({ children, store = deviceStore }: { children: R
     [store],
   );
 
+  const saveDay = useCallback<AppData['saveDay']>(
+    async (date, draft, future) => {
+      if (!activeDogId) return { error: 'Kein Hund ausgewählt.' };
+      const prepared = prepareEntry(draft, { future, exists: date in entries });
+      if (prepared.kind === 'error') return { error: prepared.message };
+      if (prepared.kind === 'delete') {
+        await store.deleteEntry(activeDogId, date);
+        setEntries((prev) => {
+          const { [date]: _removed, ...rest } = prev;
+          return rest;
+        });
+        return { result: 'deleted' };
+      }
+      const saved = await store.saveEntry(activeDogId, date, prepared);
+      setEntries((prev) => ({ ...prev, [date]: saved }));
+      return { result: 'saved' };
+    },
+    [store, activeDogId, entries],
+  );
+
+  const addCustomItem = useCallback<AppData['addCustomItem']>(
+    async (category, label) => {
+      const res = await store.addCustomItem({ category, label });
+      if (!res.existed) setCustomItems(await store.listCustomItems());
+      return res;
+    },
+    [store],
+  );
+
   const value = useMemo<AppData>(
     () => ({
       loading,
@@ -86,8 +127,12 @@ export function AppDataProvider({ children, store = deviceStore }: { children: R
       customItems,
       createDog,
       selectDog,
+      saveDay,
+      addCustomItem,
+      flash,
+      setFlash,
     }),
-    [loading, error, dogs, activeDogId, entries, customItems, createDog, selectDog],
+    [loading, error, dogs, activeDogId, entries, customItems, createDog, selectDog, saveDay, addCustomItem, flash],
   );
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;

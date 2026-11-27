@@ -92,6 +92,19 @@ describe('Speicher-Schicht', () => {
     expect(kv.data.get('fremde-app')).toBe('1');
   });
 
+  it('legt eigene Punkte an und vermeidet doppelte Namen', async () => {
+    const first = await store.addCustomItem({ category: 'skin', label: '  Kratzt   am Hals ' });
+    expect(first).toEqual({ item: { category: 'skin', label: 'Kratzt am Hals' }, existed: false });
+    const again = await store.addCustomItem({ category: 'digestion', label: 'kratzt am hals' });
+    expect(again).toEqual({ item: { category: 'skin', label: 'Kratzt am Hals' }, existed: true });
+    const catalog = await store.addCustomItem({ category: 'joints', label: 'JUCKREIZ' });
+    expect(catalog).toEqual({ item: { category: 'skin', label: 'Juckreiz' }, existed: true });
+    const all = await store.listCustomItems();
+    expect(all.map((c) => c.label)).toEqual(['Kratzt am Hals']);
+    expect(all[0].species).toBe('dog');
+    await expect(store.addCustomItem({ category: 'skin', label: '  ' })).rejects.toThrow();
+  });
+
   it('kommt mit kaputten Daten zurecht', async () => {
     await kv.setItem('felltracker:v1:dogs', '{kaputt');
     expect(await store.listDogs()).toEqual([]);
