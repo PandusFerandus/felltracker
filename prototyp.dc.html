@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Felltracker – klickbarer Prototyp</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#2F6B45}a:hover{color:#1F4A2F}
+button,input,textarea{font-family:inherit;color:#1C2E22}
+button{cursor:pointer}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; box-sizing: border-box; display: flex; flex-direction: column; background: #F0F6EF; color: #1C2E22; font-family: Nunito, system-ui, sans-serif; font-weight: 500">
+
+<sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px 8px">
+<div style="font-size: 19px; font-weight: 800">{{ stripMonth }}</div>
+<button type="button" aria-label="Einstellungen" onClick="{{ goSettings }}" style="width: 48px; height: 48px; border-radius: 16px; border: 0; background: #FFFFFF; display: flex; align-items: center; justify-content: center">
+<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2F6B45" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"></path><circle cx="12" cy="12" r="7"></circle></svg>
+</button>
+</div>
+<div ref="{{ stripRef }}" aria-label="Kalenderleiste, seitlich scrollen" style="display: flex; gap: 6px; overflow-x: auto; padding: 2px 16px 10px; flex-shrink: 0; scrollbar-width: none">
+<sc-for list="{{ strip }}" as="d" hint-placeholder-count="7">
+<button type="button" aria-label="{{ d.aria }}" aria-pressed="{{ d.on }}" onClick="{{ d.pick }}" style="flex: 0 0 48px; height: 76px; padding: 0; border-radius: 24px; border: 3px solid {{ d.border }}; background: {{ d.bg }}; color: {{ d.fg }}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px">
+<span style="font-size: 12px; font-weight: 700">{{ d.weekday }}</span>
+<span style="font-size: 17px; font-weight: 800">{{ d.n }}</span>
+<span style="display: flex; gap: 2px; height: 6px"><sc-for list="{{ d.dots }}" as="o" hint-placeholder-count="0"><span style="width: 6px; height: 6px; border-radius: 50%; background: {{ o.color }}"></span></sc-for></span>
+</button>
+</sc-for>
+</div>
+<main style="flex: 1; min-height: 0; overflow-y: auto">
+<div style="min-height: 100%; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; padding: 12px 20px 4px">
+<button type="button" aria-label="Hundeprofil öffnen" onClick="{{ goProfile }}" style="width: 180px; height: 180px; padding: 0; border-radius: 50%; border: 6px solid #FFFFFF; background: #DAEBDC; overflow: hidden; display: flex; align-items: center; justify-content: center">
+<sc-if value="{{ hasAvatar }}" hint-placeholder-val="{{ false }}"><img src="{{ avatar }}" alt="Profilbild" style="width: 100%; height: 100%; object-fit: cover"></sc-if>
+<sc-if value="{{ noAvatar }}" hint-placeholder-val="{{ true }}"><svg width="104" height="104" viewBox="0 0 48 48" aria-hidden="true"><g fill="#2F6B45"><ellipse cx="11" cy="21" rx="4.5" ry="6"></ellipse><ellipse cx="19" cy="12" rx="4.5" ry="6"></ellipse><ellipse cx="29" cy="12" rx="4.5" ry="6"></ellipse><ellipse cx="37" cy="21" rx="4.5" ry="6"></ellipse><path d="M24 22c7 0 13 8 12 13-1 5-7 3-12 3s-11 2-12-3c-1-5 5-13 12-13z"></path></g></svg></sc-if>
+</button>
+<h1 style="margin: 0; text-align: center"><button type="button" aria-label="Hund wechseln, ausgewählt: {{ dogName }}" onClick="{{ goDogs }}" style="min-height: 48px; border: 0; background: transparent; display: flex; align-items: center; gap: 8px; font-size: 32px; font-weight: 800">{{ dogName }}<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2F6B45" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button></h1>
+<div style="font-size: 15px; color: #4F6356; text-align: center">{{ dogLine }}</div>
+<sc-if value="{{ isShared }}" hint-placeholder-val="{{ true }}"><div style="font-size: 14px; font-weight: 700; text-align: center">{{ sharedLine }}</div></sc-if>
+<div aria-live="polite" style="align-self: stretch; display: flex; flex-direction: column; gap: 2px; text-align: center">
+<div style="font-size: 15px; font-weight: 800; color: #2F6B45">{{ dayStatus }}</div>
+<sc-for list="{{ homeLines }}" as="x" hint-placeholder-count="0"><div style="font-size: 14px; overflow-wrap: anywhere">{{ x.text }}</div></sc-for>
+</div>
+<sc-if value="{{ hasMsg }}" hint-placeholder-val="{{ false }}"><div role="status" style="font-size: 14px; text-align: center; background: #DAEBDC; border-radius: 12px; padding: 8px 12px">{{ msg }}</div></sc-if>
+<div style="align-self: stretch; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 8px">
+<sc-for list="{{ tiles }}" as="t" hint-placeholder-count="4">
+<button type="button" onClick="{{ t.pick }}" style="min-height: 100px; border: 0; border-radius: 20px; background: #FFFFFF; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 0 2px; font-size: 14px; font-weight: 800">
+<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2F6B45" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ t.icon }}"></path></svg>
+<span>{{ t.name }}</span>
+</button>
+</sc-for>
+</div>
+<div style="font-size: 12px; color: #4F6356">Beispieldaten zum Ausprobieren</div>
+</div>
+</main>
+<div style="display: flex; justify-content: center; padding: 8px 20px 56px">
+<button type="button" onClick="{{ openSelected }}" style="width: 100%; min-height: 64px; border: 0; border-radius: 32px; background: #2F6B45; color: #FFFFFF; font-size: 19px; font-weight: 800">{{ dayButton }}</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ notHome }}" hint-placeholder-val="{{ false }}">
+<header style="display: flex; align-items: center; gap: 12px; padding: 16px 16px 10px">
+<button type="button" aria-label="Zurück" onClick="{{ back }}" style="width: 48px; height: 48px; border-radius: 16px; border: 0; background: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2F6B45" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></button>
+<h1 style="margin: 0; font-size: 21px; font-weight: 800">{{ title }}</h1>
+</header>
+</sc-if>
+
+<sc-if value="{{ isMonthly }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 0 20px 10px">
+<button type="button" onClick="{{ prevMonth }}" style="min-width: 76px; min-height: 44px; border: 0; border-radius: 14px; background: #FFFFFF; font-size: 14px; font-weight: 800">{{ prevLabel }}</button>
+<div style="font-size: 17px; font-weight: 800">{{ monthName }}</div>
+<button type="button" onClick="{{ nextMonth }}" style="min-width: 76px; min-height: 44px; border: 0; border-radius: 14px; background: #FFFFFF; font-size: 14px; font-weight: 800">{{ nextLabel }}</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ isEntry }}" hint-placeholder-val="{{ false }}">
+<main style="flex: 1; min-height: 0; overflow-y: auto">
+<div style="display: flex; flex-direction: column; gap: 12px; padding: 0 16px 16px">
+<sc-for list="{{ cats }}" as="c" hint-placeholder-count="4">
+<section style="background: #FFFFFF; border-radius: 20px; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+<h2 style="margin: 0; font-size: 17px; font-weight: 800; display: flex; align-items: center; gap: 8px"><span style="width: 12px; height: 12px; border-radius: 50%; background: {{ c.color }}"></span>{{ c.name }}</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{ c.items }}" as="i" hint-placeholder-count="6">
+<button type="button" aria-pressed="{{ i.on }}" onClick="{{ i.pick }}" style="min-height: 44px; padding: 0 14px; border-radius: 22px; border: 2px solid {{ i.border }}; background: {{ i.bg }}; color: {{ i.fg }}; font-size: 15px; font-weight: 700">{{ i.label }}</button>
+</sc-for>
+<button type="button" onClick="{{ c.startAdd }}" style="min-height: 44px; padding: 0 14px; border-radius: 22px; border: 2px dashed #2F6B45; background: transparent; color: #2F6B45; font-size: 15px; font-weight: 800">{{ c.addLabel }}</button>
+</div>
+<sc-if value="{{ c.adding }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; gap: 8px">
+<input type="text" aria-label="Name für eigenen Eintrag" value="{{ newName }}" onChange="{{ setNewName }}" placeholder="Name eingeben" style="flex: 1; min-width: 0; min-height: 46px; box-sizing: border-box; border-radius: 14px; border: 2px solid #B5CCB9; padding: 0 12px; font-size: 16px">
+<button type="button" onClick="{{ c.confirmAdd }}" style="min-height: 46px; padding: 0 14px; border: 0; border-radius: 14px; background: #2F6B45; color: #FFFFFF; font-size: 15px; font-weight: 800">Hinzufügen</button>
+</div>
+</sc-if>
+</section>
+</sc-for>
+<sc-if value="{{ notPlanning }}" hint-placeholder-val="{{ true }}"><section style="background: #FFFFFF; border-radius: 20px; padding: 14px; display: flex; align-items: center; gap: 10px">
+<label for="weight" style="flex: 1; font-size: 17px; font-weight: 800">Gewicht</label>
+<input id="weight" type="text" inputmode="decimal" value="{{ weight }}" onChange="{{ setWeight }}" placeholder="z. B. 24,6" style="width: 120px; min-height: 48px; box-sizing: border-box; border-radius: 14px; border: 2px solid #B5CCB9; padding: 0 12px; font-size: 18px; text-align: right">
+<span style="font-size: 16px; font-weight: 800">kg</span>
+</section></sc-if>
+<label for="note" style="font-size: 17px; font-weight: 800">{{ noteLabel }}</label>
+<textarea id="note" rows="4" value="{{ note }}" onChange="{{ setNote }}" placeholder="Alles, was dir sonst auffällt" style="box-sizing: border-box; border-radius: 16px; border: 2px solid #B5CCB9; background: #FFFFFF; padding: 12px; font-size: 16px; resize: vertical"></textarea>
+</div>
+</main>
+<div style="padding: 10px 16px 20px; display: flex; flex-direction: column; gap: 6px">
+<sc-if value="{{ hasMsg }}" hint-placeholder-val="{{ false }}"><div role="status" style="font-size: 14px; text-align: center; font-weight: 700">{{ msg }}</div></sc-if>
+<button type="button" onClick="{{ save }}" style="min-height: 56px; border: 0; border-radius: 28px; background: #2F6B45; color: #FFFFFF; font-size: 18px; font-weight: 800">{{ saveLabel }}</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ isCalendar }}" hint-placeholder-val="{{ false }}">
+<main style="flex: 1; min-height: 0; overflow-y: auto">
+<div style="display: flex; flex-direction: column; gap: 12px; padding: 0 16px 20px">
+<section style="background: #FFFFFF; border-radius: 20px; padding: 10px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; text-align: center; font-size: 12px; color: #4F6356; font-weight: 700"><div>Mo</div><div>Di</div><div>Mi</div><div>Do</div><div>Fr</div><div>Sa</div><div>So</div></div>
+<div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px">
+<sc-for list="{{ blanks }}" as="b" hint-placeholder-count="6"><div></div></sc-for>
+<sc-for list="{{ days }}" as="d" hint-placeholder-count="30">
+<button type="button" aria-label="{{ d.aria }}" onClick="{{ d.pick }}" style="height: 48px; padding: 0; border-radius: 12px; border: 3px solid {{ d.border }}; background: {{ d.bg }}; color: {{ d.fg }}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 14px; font-weight: 800">
+<span>{{ d.n }}</span>
+<span style="display: flex; gap: 2px; height: 6px"><sc-for list="{{ d.dots }}" as="o" hint-placeholder-count="0"><span style="width: 6px; height: 6px; border-radius: 50%; background: {{ o.color }}"></span></sc-for></span>
+</button>
+</sc-for>
+</div>
+</section>
+<div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 13px; font-weight: 700">
+<sc-for list="{{ legend }}" as="l" hint-placeholder-count="4"><div style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 50%; background: {{ l.color }}"></span>{{ l.short }}</div></sc-for>
+</div>
+<section aria-live="polite" style="background: #FFFFFF; border-radius: 20px; padding: 14px; display: flex; flex-direction: column; gap: 6px">
+<h2 style="margin: 0; font-size: 17px; font-weight: 800">{{ detailTitle }}</h2>
+<sc-for list="{{ detailLines }}" as="x" hint-placeholder-count="2"><div style="font-size: 15px; overflow-wrap: anywhere">{{ x.text }}</div></sc-for>
+<button type="button" onClick="{{ editDay }}" style="min-height: 48px; margin-top: 6px; border: 0; border-radius: 24px; background: #2F6B45; color: #FFFFFF; font-size: 16px; font-weight: 800">{{ editLabel }}</button>
+</section>
+</div>
+</main>
+</sc-if>
+
+<sc-if value="{{ isTrend }}" hint-placeholder-val="{{ false }}">
+<main style="flex: 1; min-height: 0; overflow-y: auto">
+<div style="display: flex; flex-direction: column; gap: 12px; padding: 0 16px 20px">
+<section style="background: #FFFFFF; border-radius: 20px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; align-items: baseline"><h2 style="margin: 0; font-size: 17px; font-weight: 800">Gewicht</h2><div style="font-size: 15px; font-weight: 800">{{ weightSummary }}</div></div>
+<sc-if value="{{ hasLine }}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 320 100" width="100%" height="100" role="img" aria-label="Gewichtskurve im Monat"><polyline points="{{ linePoints }}" fill="none" stroke="#2F6B45" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></polyline></svg></sc-if>
+</section>
+<section style="background: #FFFFFF; border-radius: 20px; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+<h2 style="margin: 0; font-size: 17px; font-weight: 800">An wie vielen Tagen?</h2>
+<sc-if value="{{ noStats }}" hint-placeholder-val="{{ false }}"><div style="font-size: 15px">Noch keine Einträge in diesem Monat.</div></sc-if>
+<sc-for list="{{ stats }}" as="s" hint-placeholder-count="5">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 700"><span>{{ s.label }}</span><span>{{ s.count }}</span></div>
+<div style="height: 10px; border-radius: 5px; background: #F0F6EF"><div style="height: 10px; border-radius: 5px; width: {{ s.width }}; background: {{ s.color }}"></div></div>
+</div>
+</sc-for>
+</section>
+</div>
+</main>
+</sc-if>
+
+<sc-if value="{{ isExport }}" hint-placeholder-val="{{ false }}">
+<main style="flex: 1; min-height: 0; overflow-y: auto">
+<div style="display: flex; flex-direction: column; gap: 12px; padding: 0 16px 16px">
+<section style="background: #FFFFFF; border: 1px solid #B5CCB9; padding: 14px 10px; display: flex; flex-direction: column; gap: 6px">
+<div style="font-size: 12px; color: #4F6356; font-weight: 700">Felltracker · Monatsübersicht</div>
+<h2 style="margin: 0; font-size: 22px; font-weight: 800">{{ dogName }}</h2>
+<div style="font-size: 13px">{{ dogLine }}</div>
+<div style="font-size: 13px; font-weight: 700">Zeitraum: {{ period }} · erstellt am 27.11.2026</div>
+<div role="table" aria-label="Monatstabelle" style="display: flex; flex-direction: column; font-size: 12px; margin-top: 6px">
+<div role="row" style="display: grid; grid-template-columns: 46px minmax(0, 1.4fr) 36px minmax(0, 1fr); gap: 6px; padding: 6px 4px; background: #DAEBDC; font-weight: 800"><div role="columnheader">Datum</div><div role="columnheader">Ereignisse und Symptome</div><div role="columnheader">kg</div><div role="columnheader">Notiz</div></div>
+<sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+<div role="row" style="display: grid; grid-template-columns: 46px minmax(0, 1.4fr) 36px minmax(0, 1fr); gap: 6px; padding: 6px 4px; border-bottom: 1px solid #B5CCB9; overflow-wrap: anywhere">
+<div role="cell" style="font-weight: 800">{{ r.date }}</div>
+<div role="cell" style="display: flex; flex-direction: column; gap: 2px"><sc-for list="{{ r.lines }}" as="x" hint-placeholder-count="1"><div>{{ x.text }}</div></sc-for></div>
+<div role="cell">{{ r.weight }}</div>
+<div role="cell">{{ r.note }}</div>
+</div>
+</sc-for>
+</div>
+<div style="font-size: 12px; color: #4F6356">{{ rowCount }}</div>
+</section>
+</div>
+</main>
+<div style="padding: 10px 16px 20px; display: flex; flex-direction: column; gap: 6px">
+<sc-if value="{{ hasMsg }}" hint-placeholder-val="{{ false }}"><div role="status" style="font-size: 14px; text-align: center; font-weight: 700">{{ msg }}</div></sc-if>
+<button type="button" onClick="{{ fakePdf }}" style="min-height: 56px; border: 0; border-radius: 28px; background: #2F6B45; color: #FFFFFF; font-size: 18px; font-weight: 800">Monat als PDF exportieren</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+<main style="flex: 1; min-height: 0; overflow-y: auto">
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 0 16px 20px; font-size: 15px; font-weight: 800">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding-bottom: 8px">
+<button type="button" aria-label="Profilbild ändern" onClick="{{ openPhoto }}" style="position: relative; width: 140px; height: 140px; padding: 0; border: 0; background: transparent">
+<span style="width: 140px; height: 140px; box-sizing: border-box; border-radius: 50%; border: 5px solid #FFFFFF; background: #DAEBDC; overflow: hidden; display: flex; align-items: center; justify-content: center">
+<sc-if value="{{ hasAvatar }}" hint-placeholder-val="{{ false }}"><img src="{{ avatar }}" alt="Profilbild" style="width: 100%; height: 100%; object-fit: cover"></sc-if>
+<sc-if value="{{ noAvatar }}" hint-placeholder-val="{{ true }}"><svg width="76" height="76" viewBox="0 0 48 48" aria-hidden="true"><g fill="#2F6B45"><ellipse cx="11" cy="21" rx="4.5" ry="6"></ellipse><ellipse cx="19" cy="12" rx="4.5" ry="6"></ellipse><ellipse cx="29" cy="12" rx="4.5" ry="6"></ellipse><ellipse cx="37" cy="21" rx="4.5" ry="6"></ellipse><path d="M24 22c7 0 13 8 12 13-1 5-7 3-12 3s-11 2-12-3c-1-5 5-13 12-13z"></path></g></svg></sc-if>
+</span>
+<span style="position: absolute; right: 2px; bottom: 2px; width: 48px; height: 48px; box-sizing: border-box; border-radius: 50%; border: 4px solid #F0F6EF; background: #2F6B45; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg></span>
+</button>
+</div>
+<label for="pname">Hundename</label>
+<input id="pname" type="text" value="{{ pName }}" onChange="{{ setName }}" style="min-height: 48px; box-sizing: border-box; border-radius: 14px; border: 2px solid #B5CCB9; padding: 0 12px; font-size: 16px">
+<label for="pbirth">Geburtstag</label>
+<input id="pbirth" type="date" value="{{ pBirth }}" onChange="{{ setBirth }}" style="min-height: 48px; box-sizing: border-box; border-radius: 14px; border: 2px solid #B5CCB9; padding: 0 12px; font-size: 16px">
+<div style="font-size: 14px; font-weight: 500; color: #4F6356">Alter: {{ age }}</div>
+<label for="pbreed">Rasse</label>
+<input id="pbreed" type="text" value="{{ pBreed }}" onChange="{{ setBreed }}" style="min-height: 48px; box-sizing: border-box; border-radius: 14px; border: 2px solid #B5CCB9; padding: 0 12px; font-size: 16px">
+<label for="pmeds">Medikamente</label>
+<textarea id="pmeds" rows="2" value="{{ pMeds }}" onChange="{{ setMeds }}" style="box-sizing: border-box; border-radius: 14px; border: 2px solid #B5CCB9; padding: 10px 12px; font-size: 16px"></textarea>
+<label for="pfood">Futterart</label>
+<input id="pfood" type="text" value="{{ pFood }}" onChange="{{ setFood }}" style="min-height: 48px; box-sizing: border-box; border-radius: 14px; border: 2px solid #B5CCB9; padding: 0 12px; font-size: 16px">
+<label for="pamount">Futtermenge</label>
+<input id="pamount" type="text" value="{{ pAmount }}" onChange="{{ setAmount }}" style="min-height: 48px; box-sizing: border-box; border-radius: 14px; border: 2px solid #B5CCB9; padding: 0 12px; font-size: 16px">
+<label for="pvet">Haustierarzt</label>
+<textarea id="pvet" rows="3" value="{{ pVet }}" onChange="{{ setVet }}" placeholder="Praxis, Adresse, Telefon" style="box-sizing: border-box; border-radius: 14px; border: 2px solid #B5CCB9; padding: 10px 12px; font-size: 16px"></textarea>
+<label for="pinfo">Wichtige weitere Infos</label>
+<textarea id="pinfo" rows="4" value="{{ pInfo }}" onChange="{{ setInfo }}" style="box-sizing: border-box; border-radius: 14px; border: 2px solid #B5CCB9; padding: 10px 12px; font-size: 16px"></textarea>
+<sc-if value="{{ hasMsg }}" hint-placeholder-val="{{ false }}"><div role="status" style="text-align: center">{{ msg }}</div></sc-if>
+<button type="button" onClick="{{ saveProfile }}" style="min-height: 54px; margin-top: 6px; border: 0; border-radius: 27px; background: #2F6B45; color: #FFFFFF; font-size: 17px; font-weight: 800">Profil speichern</button>
+<button type="button" onClick="{{ goShare }}" style="min-height: 54px; border: 2px solid #2F6B45; border-radius: 27px; background: #FFFFFF; color: #2F6B45; font-size: 17px; font-weight: 800">Als PDF teilen</button>
+</div>
+</main>
+</sc-if>
+
+<sc-if value="{{ isShare }}" hint-placeholder-val="{{ false }}">
+<main style="flex: 1; min-height: 0; overflow-y: auto">
+<div style="display: flex; flex-direction: column; gap: 12px; padding: 0 16px 16px">
+<section style="background: #FFFFFF; border: 1px solid #B5CCB9; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 12px; color: #4F6356; font-weight: 700">Felltracker · Hundeprofil</div>
+<sc-if value="{{ hasAvatar }}" hint-placeholder-val="{{ false }}"><img src="{{ avatar }}" alt="Profilbild" style="width: 120px; height: 120px; object-fit: cover; border-radius: 50%; align-self: center"></sc-if>
+<sc-if value="{{ noAvatar }}" hint-placeholder-val="{{ true }}"><div style="width: 120px; height: 120px; border-radius: 50%; background: #DAEBDC; align-self: center; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700">Profilbild</div></sc-if>
+<h2 style="margin: 0; font-size: 26px; font-weight: 800; text-align: center">{{ dogName }}</h2>
+<sc-for list="{{ facts }}" as="f" hint-placeholder-count="6">
+<div style="display: flex; flex-direction: column; border-top: 1px solid #B5CCB9; padding-top: 8px; overflow-wrap: anywhere"><div style="font-size: 12px; color: #4F6356; font-weight: 800">{{ f.label }}</div><div style="font-size: 15px; white-space: pre-line">{{ f.value }}</div></div>
+</sc-for>
+</section>
+</div>
+</main>
+<div style="padding: 10px 16px 20px; display: flex; flex-direction: column; gap: 8px">
+<sc-if value="{{ hasMsg }}" hint-placeholder-val="{{ false }}"><div role="status" style="font-size: 14px; text-align: center; font-weight: 700">{{ msg }}</div></sc-if>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<button type="button" onClick="{{ fakeWhatsapp }}" style="min-height: 54px; border: 0; border-radius: 27px; background: #2F6B45; color: #FFFFFF; font-size: 16px; font-weight: 800">WhatsApp</button>
+<button type="button" onClick="{{ fakeMail }}" style="min-height: 54px; border: 0; border-radius: 27px; background: #2F6B45; color: #FFFFFF; font-size: 16px; font-weight: 800">E-Mail</button>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ isLogin }}" hint-placeholder-val="{{ false }}">
+<main style="flex: 1; min-height: 0; overflow-y: auto">
+<div style="min-height: 100%; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; padding: 0 16px 24px">
+<div style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 10px; padding: 24px 8px">
+<h1 style="margin: 0; font-size: 34px; font-weight: 800; text-align: center; color: #2F6B45">Felltracker</h1>
+<div style="margin: 0 0 6px; font-size: 15px; color: #4F6356; text-align: center">dein Hundetagebuch</div>
+<div style="font-size: 16px; font-weight: 800; text-align: center">{{ loginTitle }}</div>
+<sc-if value="{{ registering }}" hint-placeholder-val="{{ false }}"><div style="display: flex; flex-direction: column; gap: 6px"><label for="uname" style="font-weight: 800">Dein Name</label><input id="uname" type="text" value="{{ userName }}" onChange="{{ setUserName }}" style="min-height: 50px; box-sizing: border-box; border-radius: 14px; border: 2px solid #B5CCB9; padding: 0 12px; font-size: 16px"></div></sc-if>
+<label for="mail" style="font-weight: 800">E-Mail</label>
+<input id="mail" type="email" value="{{ email }}" onChange="{{ setEmail }}" style="min-height: 50px; box-sizing: border-box; border-radius: 14px; border: 2px solid #B5CCB9; padding: 0 12px; font-size: 16px">
+<label for="pw" style="font-weight: 800">Passwort</label>
+<input id="pw" type="password" placeholder="Im Prototyp leer lassen" style="min-height: 50px; box-sizing: border-box; border-radius: 14px; border: 2px solid #B5CCB9; padding: 0 12px; font-size: 16px">
+<sc-if value="{{ hasMsg }}" hint-placeholder-val="{{ false }}"><div role="status" style="font-size: 14px; text-align: center; font-weight: 700">{{ msg }}</div></sc-if>
+<button type="button" onClick="{{ login }}" style="min-height: 54px; border: 0; border-radius: 27px; background: #2F6B45; color: #FFFFFF; font-size: 17px; font-weight: 800">{{ loginButton }}</button>
+<button type="button" onClick="{{ toggleRegister }}" style="min-height: 54px; border: 2px solid #2F6B45; border-radius: 27px; background: #FFFFFF; color: #2F6B45; font-size: 16px; font-weight: 800">{{ toggleLabel }}</button>
+<button type="button" onClick="{{ forgot }}" style="min-height: 44px; border: 0; background: transparent; color: #2F6B45; font-size: 15px; font-weight: 800">Passwort vergessen?</button>
+<div style="border-top: 2px solid #B5CCB9; margin-top: 4px; padding-top: 14px; display: flex; flex-direction: column; gap: 6px">
+<button type="button" onClick="{{ guestStart }}" style="min-height: 54px; border: 0; border-radius: 27px; background: #DAEBDC; color: #1C2E22; font-size: 17px; font-weight: 800">{{ guestLabel }}</button>
+<div style="font-size: 13px; color: #4F6356; text-align: center">Ohne Konto bleiben deine Daten nur auf diesem Handy.</div>
+</div>
+<div style="font-size: 13px; color: #4F6356; text-align: center">Vorschau: Nichts wird gesendet. Bitte kein echtes Passwort eingeben.</div>
+</div>
+</div>
+</main>
+</sc-if>
+<sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+<main style="flex: 1; min-height: 0; overflow-y: auto">
+<div style="min-height: 100%; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; padding: 0 16px 24px">
+<sc-for list="{{ menu }}" as="m" hint-placeholder-count="4">
+<button type="button" onClick="{{ m.pick }}" style="min-height: 68px; border: 0; border-radius: 18px; background: #FFFFFF; padding: 10px 16px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 2px; text-align: left"><span style="font-size: 17px; font-weight: 800">{{ m.name }}</span><span style="font-size: 14px; color: #4F6356">{{ m.text }}</span></button>
+</sc-for>
+</div>
+</main>
+</sc-if>
+<sc-if value="{{ isDogs }}" hint-placeholder-val="{{ false }}">
+<main style="flex: 1; min-height: 0; overflow-y: auto">
+<div style="min-height: 100%; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; padding: 0 16px 24px">
+<sc-for list="{{ dogRows }}" as="d" hint-placeholder-count="2">
+<button type="button" aria-pressed="{{ d.on }}" onClick="{{ d.pick }}" style="min-height: 76px; border: 3px solid {{ d.border }}; border-radius: 20px; background: #FFFFFF; padding: 10px 16px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 2px; text-align: left"><span style="font-size: 19px; font-weight: 800">{{ d.name }}</span><span style="font-size: 14px; color: #4F6356">{{ d.text }}</span></button>
+</sc-for>
+<label for="newdog" style="font-weight: 800; margin-top: 12px">Neuen Hund hinzufügen</label>
+<input id="newdog" type="text" value="{{ newDog }}" onChange="{{ setNewDog }}" placeholder="Name des Hundes" style="min-height: 50px; box-sizing: border-box; border-radius: 14px; border: 2px solid #B5CCB9; padding: 0 12px; font-size: 16px">
+<sc-if value="{{ hasMsg }}" hint-placeholder-val="{{ false }}"><div role="status" style="font-size: 14px; text-align: center; font-weight: 700">{{ msg }}</div></sc-if>
+<button type="button" onClick="{{ addDog }}" style="min-height: 54px; border: 0; border-radius: 27px; background: #2F6B45; color: #FFFFFF; font-size: 17px; font-weight: 800">+ Hund hinzufügen</button>
+</div>
+</main>
+</sc-if>
+<sc-if value="{{ isMembers }}" hint-placeholder-val="{{ false }}">
+<main style="flex: 1; min-height: 0; overflow-y: auto">
+<div style="min-height: 100%; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; padding: 0 16px 24px">
+<div style="font-size: 16px; font-weight: 800">Wer kann {{ dogName }} sehen und eintragen?</div>
+<sc-for list="{{ memberRows }}" as="m" hint-placeholder-count="2">
+<div style="background: #FFFFFF; border-radius: 18px; padding: 12px 16px; display: flex; align-items: center; gap: 10px">
+<div style="flex: 1; min-width: 0; overflow-wrap: anywhere"><div style="font-size: 17px; font-weight: 800">{{ m.name }}</div><div style="font-size: 14px; color: #4F6356">{{ m.role }}</div></div>
+<sc-if value="{{ m.removable }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ m.remove }}" style="min-height: 44px; padding: 0 14px; border: 0; border-radius: 12px; background: #F0F6EF; font-size: 14px; font-weight: 800">Entfernen</button></sc-if>
+</div>
+</sc-for>
+<sc-if value="{{ isOwner }}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px">
+<label for="invite" style="font-weight: 800">Person per E-Mail einladen</label>
+<input id="invite" type="email" value="{{ invite }}" onChange="{{ setInvite }}" placeholder="name@beispiel.de" style="min-height: 50px; box-sizing: border-box; border-radius: 14px; border: 2px solid #B5CCB9; padding: 0 12px; font-size: 16px">
+<button type="button" onClick="{{ sendInvite }}" style="min-height: 54px; border: 0; border-radius: 27px; background: #2F6B45; color: #FFFFFF; font-size: 17px; font-weight: 800">Einladen</button>
+</div>
+</sc-if>
+<sc-if value="{{ notOwner }}" hint-placeholder-val="{{ false }}"><div style="font-size: 14px">Nur die Besitzerperson kann einladen oder entfernen.</div></sc-if>
+<sc-if value="{{ hasMsg }}" hint-placeholder-val="{{ false }}"><div role="status" style="font-size: 14px; text-align: center; font-weight: 700">{{ msg }}</div></sc-if>
+</div>
+</main>
+</sc-if>
+<sc-if value="{{ isMembersHint }}" hint-placeholder-val="{{ false }}">
+<main style="flex: 1; min-height: 0; overflow-y: auto">
+<div style="min-height: 100%; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; gap: 12px; padding: 0 16px 80px">
+<div style="background: #FFFFFF; border-radius: 22px; padding: 20px; display: flex; flex-direction: column; gap: 10px; text-align: center">
+<h2 style="margin: 0; font-size: 20px; font-weight: 800">Dafür brauchst du ein Konto</h2>
+<div style="font-size: 15px">Damit andere {{ dogName }} mit dir verwalten können, müssen die Daten auf einem Server liegen. Deine bisherigen Einträge werden übernommen.</div>
+</div>
+<button type="button" onClick="{{ createAccount }}" style="min-height: 56px; border: 0; border-radius: 28px; background: #2F6B45; color: #FFFFFF; font-size: 17px; font-weight: 800">Konto erstellen</button>
+<button type="button" onClick="{{ back }}" style="min-height: 54px; border: 2px solid #2F6B45; border-radius: 27px; background: #FFFFFF; color: #2F6B45; font-size: 16px; font-weight: 800">Später</button>
+</div>
+</main>
+</sc-if>
+<sc-if value="{{ isAccountGuest }}" hint-placeholder-val="{{ false }}">
+<main style="flex: 1; min-height: 0; overflow-y: auto">
+<div style="min-height: 100%; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; padding: 0 16px 24px">
+<div style="background: #FFFFFF; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 8px"><div style="font-size: 18px; font-weight: 800">Du nutzt die App ohne Konto</div><div style="font-size: 15px">Deine Daten liegen nur auf diesem Handy. Geht es verloren oder löschst du die App, können sie weg sein.</div></div>
+<button type="button" onClick="{{ createAccount }}" style="min-height: 54px; border: 0; border-radius: 27px; background: #2F6B45; color: #FFFFFF; font-size: 17px; font-weight: 800">Konto erstellen</button>
+<button type="button" onClick="{{ askDelete }}" style="min-height: 54px; border: 2px solid #2F6B45; border-radius: 27px; background: #FFFFFF; color: #2F6B45; font-size: 16px; font-weight: 800; margin-top: 20px">Alle Daten löschen</button>
+<sc-if value="{{ confirmDelete }}" hint-placeholder-val="{{ false }}">
+<div style="background: #FFFFFF; border: 2px solid #1C2E22; border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 15px; font-weight: 800">Wirklich löschen? Alle Einträge wären dauerhaft weg.</div>
+<button type="button" onClick="{{ deleteLocal }}" style="min-height: 54px; border: 0; border-radius: 27px; background: #2F6B45; color: #FFFFFF; font-size: 17px; font-weight: 800">Ja, endgültig löschen</button>
+<button type="button" onClick="{{ cancelDelete }}" style="min-height: 54px; border: 2px solid #2F6B45; border-radius: 27px; background: #FFFFFF; color: #2F6B45; font-size: 16px; font-weight: 800">Abbrechen</button>
+</div>
+</sc-if>
+</div>
+</main>
+</sc-if>
+<sc-if value="{{ isAccount }}" hint-placeholder-val="{{ false }}">
+<main style="flex: 1; min-height: 0; overflow-y: auto">
+<div style="min-height: 100%; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; padding: 0 16px 24px">
+<div style="background: #FFFFFF; border-radius: 18px; padding: 14px 16px; overflow-wrap: anywhere"><div style="font-size: 18px; font-weight: 800">{{ userName }}</div><div style="font-size: 15px; color: #4F6356">{{ email }}</div></div>
+<button type="button" onClick="{{ logout }}" style="min-height: 54px; border: 0; border-radius: 27px; background: #2F6B45; color: #FFFFFF; font-size: 17px; font-weight: 800">Abmelden</button>
+<button type="button" onClick="{{ askDelete }}" style="min-height: 54px; border: 2px solid #2F6B45; border-radius: 27px; background: #FFFFFF; color: #2F6B45; font-size: 16px; font-weight: 800; margin-top: 20px">Konto löschen</button>
+<sc-if value="{{ confirmDelete }}" hint-placeholder-val="{{ false }}">
+<div style="background: #FFFFFF; border: 2px solid #1C2E22; border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 15px; font-weight: 800">Wirklich löschen? Dein Konto und deine Daten wären dauerhaft weg.</div>
+<button type="button" onClick="{{ deleteAccount }}" style="min-height: 54px; border: 0; border-radius: 27px; background: #2F6B45; color: #FFFFFF; font-size: 17px; font-weight: 800">Ja, endgültig löschen</button>
+<button type="button" onClick="{{ cancelDelete }}" style="min-height: 54px; border: 2px solid #2F6B45; border-radius: 27px; background: #FFFFFF; color: #2F6B45; font-size: 16px; font-weight: 800">Abbrechen</button>
+</div>
+</sc-if>
+</div>
+</main>
+</sc-if>
+<sc-if value="{{ photoSheet }}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(28, 46, 34, 0.45); display: flex; flex-direction: column; justify-content: flex-end">
+<div role="dialog" aria-label="Profilbild ändern" style="background: #F0F6EF; border-radius: 28px 28px 0 0; padding: 20px 16px 28px; display: flex; flex-direction: column; gap: 10px">
+<h2 style="margin: 0 0 4px; font-size: 18px; font-weight: 800; text-align: center">Profilbild ändern</h2>
+<label style="position: relative; min-height: 56px; border-radius: 28px; background: #2F6B45; color: #FFFFFF; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 17px; font-weight: 800; cursor: pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>Foto aufnehmen<input type="file" accept="image/*" capture="environment" onChange="{{ setAvatar }}" style="position: absolute; width: 1px; height: 1px; opacity: 0"></label>
+<label style="position: relative; min-height: 56px; border-radius: 28px; background: #2F6B45; color: #FFFFFF; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 17px; font-weight: 800; cursor: pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v14H4zM4 16l5-5 4 4 3-3 4 4"></path><circle cx="15.5" cy="9" r="1.5"></circle></svg>Aus Mediathek wählen<input type="file" accept="image/*" onChange="{{ setAvatar }}" style="position: absolute; width: 1px; height: 1px; opacity: 0"></label>
+<sc-if value="{{ hasAvatar }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ removeAvatar }}" style="min-height: 52px; border: 2px solid #2F6B45; border-radius: 26px; background: #FFFFFF; color: #2F6B45; font-size: 16px; font-weight: 800">Foto entfernen</button></sc-if>
+<button type="button" onClick="{{ closePhoto }}" style="min-height: 48px; border: 0; background: transparent; color: #2F6B45; font-size: 16px; font-weight: 800">Abbrechen</button>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const e = (sel, weight, note) => ({ sel: sel, weight: weight || '', note: note || '' });
+    this.state = {
+      screen: 'login', back: 'home', parent: 'home', registering: false, userName: 'Kim', email: 'kim@beispiel.de', newDog: '', invite: '', confirmDelete: false, guest: false, upgrade: false, photoSheet: false, activeId: 'bella',
+      members: [{ name: 'Du', role: 'Besitzer:in', me: true }, { name: 'Alex', role: 'Verwaltet mit' }],
+      dogList: [
+        { id: 'bella' },
+        { id: 'milo', profile: { name: 'Milo', birth: '2024-06-02', breed: 'Beagle', meds: '', food: 'Nassfutter', amount: '2 Dosen am Tag', info: '', vet: '', avatar: '' }, members: [{ name: 'Alex', role: 'Besitzer:in' }, { name: 'Du', role: 'Verwaltet mit', me: true }], entries: { '2026-11-25': e(['Hundesport'], '13,2') } }
+      ], date: '2026-11-27', day: '2026-11-27', month: '2026-11', msg: '', adding: '', newName: '',
+      custom: { ev: [], skin: [], dig: [], mus: [] },
+      draft: e([]),
+      profile: { name: 'Bella', birth: '2022-03-14', breed: 'Labrador-Mischling', meds: 'Keine dauerhaften Medikamente', food: 'Trockenfutter', amount: '2 × 150 g am Tag', info: 'Verträgt kein Huhn. Hat Angst bei Gewitter.', vet: 'Tierarztpraxis Beispiel\nMusterweg 1, Musterstadt\nTel. 000 000000', avatar: '' },
+      entries: {
+        '2026-10-02': e(['Juckreiz', 'Pfoten lecken'], '25,4'),
+        '2026-10-05': e(['Impfung', 'Tierarztbesuch'], '', 'Jahresimpfung'),
+        '2026-10-09': e(['Juckreiz', 'Ohren kratzen'], '25,3'),
+        '2026-10-14': e(['Durchfall']),
+        '2026-10-16': e(['Hundesport'], '25,2'),
+        '2026-10-23': e(['Juckreiz', 'Haarausfall'], '25,1'),
+        '2026-10-27': e(['Physiotherapie', 'Humpeln']),
+        '2026-10-30': e([], '25,0'),
+        '2026-11-02': e(['Juckreiz', 'Pfoten lecken', 'Ohren kratzen'], '25,0'),
+        '2026-11-05': e(['Tierarztbesuch'], '', 'Pfote untersucht'),
+        '2026-11-06': e([], '24,9'),
+        '2026-11-09': e(['Juckreiz', 'Haarausfall']),
+        '2026-11-12': e(['Juckreiz'], '', 'Neues Futter begonnen'),
+        '2026-11-13': e([], '24,8'),
+        '2026-11-15': e(['Urlaub']),
+        '2026-11-16': e(['Urlaub', 'Weicher Kot']),
+        '2026-11-19': e(['Physiotherapie']),
+        '2026-11-20': e(['Hundesport', 'Muskelzittern'], '24,7'),
+        '2026-11-24': e(['Pfoten lecken']),
+        '2026-11-26': e(['Schütteln']),
+        '2026-12-03': e(['Tierarztbesuch'], '', 'Kontrolltermin')
+      }
+    };
+    this.stripRef = (el) => {
+      if (!el || el.dataset.ready) return;
+      el.dataset.ready = '1';
+      const d = this.state.day;
+      const index = Math.round((Date.UTC(Number(d.slice(0, 4)), Number(d.slice(5, 7)) - 1, Number(d.slice(8))) - Date.UTC(2025, 10, 1)) / 86400000);
+      requestAnimationFrame(() => { el.scrollLeft = 16 + index * 54 - (el.clientWidth - 48) / 2; });
+    };
+  }
+  renderVals() {
+    const st = this.state;
+    const today = '2026-11-27';
+    const monthNames = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+    const current = today.slice(0, 7);
+    const months = {};
+    for (let i = -12; i <= 6; i++) {
+      const dt = new Date(2026, 10 + i, 1);
+      const y = dt.getFullYear();
+      const num = dt.getMonth() + 1;
+      months[y + '-' + (num < 10 ? '0' + num : num)] = { name: monthNames[num - 1], year: y, num: num, len: new Date(y, num, 0).getDate(), offset: (dt.getDay() + 6) % 7 };
+    }
+    const allMonths = Object.keys(months);
+    const catalog = [
+      { key: 'ev', name: 'Ereignisse', short: 'Ereignisse', color: '#1F5C99', items: ['Urlaub', 'Unfall', 'Deckakt', 'Läufigkeit', 'Impfung', 'Tierarztbesuch', 'Wurmkur', 'Floh-/Zeckenschutz', 'Hundefriseur', 'Gebadet', 'Hundesport', 'Physiotherapie', 'Futterwechsel'] },
+      { key: 'skin', name: 'Haut, Haar & Ohren', short: 'Haut & Ohren', color: '#B26B00', items: ['Pfoten lecken', 'Schütteln', 'Ohren kratzen', 'Haarausfall', 'Juckreiz', 'Rötung', 'Schuppen', 'Hotspot', 'Ohrgeruch', 'Fellgeruch'] },
+      { key: 'dig', name: 'Verdauung', short: 'Verdauung', color: '#6A4590', items: ['Durchfall', 'Weicher Kot', 'Kein Haufen', 'Ungewöhnliche Farbe', 'Blut im Kot', 'Erbrechen', 'Blähungen', 'Appetitlos', 'Gras fressen'] },
+      { key: 'mus', name: 'Gelenke & Muskeln', short: 'Gelenke & Muskeln', color: '#B03A7A', items: ['Muskelzittern', 'Humpeln', 'Steifheit', 'Mühe beim Aufstehen', 'Meidet Treppen', 'Springt nicht', 'Schonhaltung', 'Schmerzlaute', 'Bewegungsunlust'] }
+    ].map((c) => Object.assign({}, c, { all: c.items.concat(st.custom[c.key]) }));
+
+    const dayOf = (k) => parseInt(k.slice(8), 10);
+    const monthOf = (k) => parseInt(k.slice(5, 7), 10);
+    const longDate = (k) => dayOf(k) + '. ' + months[k.slice(0, 7)].name + (k.slice(0, 4) === today.slice(0, 4) ? '' : ' ' + k.slice(0, 4));
+    const shortDate = (k) => dayOf(k) + '.' + monthOf(k) + '.';
+    const key = (m, n) => m + '-' + (n < 10 ? '0' + n : n);
+    const copy = (x) => ({ sel: x.sel.slice(), weight: x.weight, note: x.note });
+    const lines = (x) => catalog.map((c) => ({ c: c, found: c.all.filter((i) => x.sel.indexOf(i) > -1) })).filter((g) => g.found.length).map((g) => ({ text: g.c.short + ': ' + g.found.join(', ') }));
+
+    const go = (screen, extra) => {
+      const next = Object.assign({ screen: screen, msg: '', adding: '', newName: '', photoSheet: false, confirmDelete: false }, extra || {});
+      this.setState(next);
+    };
+    const showMonth = (step) => {
+      const mk = allMonths[allMonths.indexOf(st.month) + step];
+      if (!mk) return;
+      const day = mk === current ? today : key(mk, mk < current ? months[mk].len : 1);
+      this.setState({ month: mk, day: day, msg: '' });
+    };
+    const monthButton = (step) => {
+      const mk = allMonths[allMonths.indexOf(st.month) + step];
+      const label = mk ? months[mk].name.slice(0, 3) : '–';
+      return step < 0 ? '‹ ' + label : label + ' ›';
+    };
+    const openDay = (k, from) => go('entry', { date: k, back: from, draft: st.entries[k] ? copy(st.entries[k]) : { sel: [], weight: '', note: '' } });
+    const setDraft = (part) => this.setState({ draft: Object.assign({}, this.state.draft, part), msg: '' });
+    const setProfile = (field) => (ev) => this.setState({ profile: Object.assign({}, this.state.profile, { [field]: ev.target.value }), msg: '' });
+
+    const p = st.profile;
+    let age = 'noch nicht angegeben';
+    if (p.birth) {
+      let months_ = (2026 - parseInt(p.birth.slice(0, 4), 10)) * 12 + (11 - parseInt(p.birth.slice(5, 7), 10));
+      if (parseInt(p.birth.slice(8, 10), 10) > 27) months_ -= 1;
+      if (months_ >= 0) age = months_ < 12 ? months_ + (months_ === 1 ? ' Monat' : ' Monate') : Math.floor(months_ / 12) + (months_ < 24 ? ' Jahr' : ' Jahre');
+    }
+    const dogName = p.name || 'Dein Hund';
+    const dogLine = [p.breed, p.birth ? age : ''].filter(Boolean).join(' · ');
+
+    const planning = st.date > today;
+    const cats = catalog.filter((c) => !planning || c.key === 'ev').map((c) => ({
+      name: c.name, color: c.color,
+      addLabel: c.key === 'ev' ? '+ Eigenes Ereignis' : '+ Eigenes Symptom',
+      adding: st.adding === c.key,
+      startAdd: () => this.setState({ adding: c.key, newName: '', msg: '' }),
+      confirmAdd: () => {
+        const name = this.state.newName.trim();
+        if (!name) { this.setState({ msg: 'Bitte gib einen Namen ein.' }); return; }
+        let existing = '';
+        catalog.forEach((g) => g.all.forEach((i) => { if (i.toLowerCase() === name.toLowerCase()) existing = i; }));
+        const label = existing || name;
+        const custom = Object.assign({}, this.state.custom);
+        if (!existing) custom[c.key] = custom[c.key].concat(name);
+        const sel = this.state.draft.sel;
+        this.setState({ custom: custom, adding: '', newName: '', msg: existing ? 'Den Eintrag gibt es schon, er ist jetzt ausgewählt.' : '', draft: Object.assign({}, this.state.draft, { sel: sel.indexOf(label) > -1 ? sel : sel.concat(label) }) });
+      },
+      items: c.all.map((label) => {
+        const on = st.draft.sel.indexOf(label) > -1;
+        return { label: on ? '✓ ' + label : label, on: on, bg: on ? '#2F6B45' : '#FFFFFF', fg: on ? '#FFFFFF' : '#1C2E22', border: on ? '#2F6B45' : '#B5CCB9', pick: () => setDraft({ sel: on ? st.draft.sel.filter((x) => x !== label) : st.draft.sel.concat(label) }) };
+      })
+    }));
+
+    const save = () => {
+      const d = this.state.draft;
+      const raw = d.weight.trim().replace(',', '.');
+      const num = Number(raw);
+      if (raw && !(num > 0 && num < 120)) { this.setState({ msg: 'Bitte prüfe das Gewicht, z. B. 24,6.' }); return; }
+      const entries = Object.assign({}, this.state.entries);
+      const empty = !d.sel.length && !raw && !d.note.trim();
+      if (empty && !entries[st.date]) { this.setState({ msg: 'Bitte tippe erst etwas an oder gib etwas ein.' }); return; }
+      if (empty) delete entries[st.date];
+      else entries[st.date] = { sel: d.sel, weight: raw ? String(Math.round(num * 10) / 10).replace('.', ',') : '', note: d.note.trim() };
+      go(st.back, { entries: entries, day: st.date, month: st.date.slice(0, 7) });
+      this.setState({ msg: empty ? 'Eintrag gelöscht.' : (st.date > today ? 'Termin am ' : 'Eintrag für ') + longDate(st.date) + ' gespeichert.' });
+    };
+
+    const m = months[st.month];
+    const blanks = [];
+    for (let i = 0; i < m.offset; i++) blanks.push({ i: i });
+    const days = [];
+    for (let n = 1; n <= m.len; n++) {
+      const k = key(st.month, n);
+      const x = st.entries[k];
+      const future = k > today;
+      const bg = x ? '#DAEBDC' : '#F5F8F4';
+      days.push({
+        n: n, bg: bg, fg: future ? '#5F7066' : '#1C2E22', border: st.day === k ? '#2F6B45' : bg,
+        dots: x ? catalog.filter((c) => c.all.some((i) => x.sel.indexOf(i) > -1)).map((c) => ({ color: c.color })) : [],
+        aria: longDate(k) + (x ? ', mit Eintrag' : ', ohne Eintrag'),
+        pick: () => this.setState({ day: k, msg: '' })
+      });
+    }
+    const dx = st.entries[st.day];
+    let detailLines = [{ text: st.day > today ? 'Noch kein Termin.' : 'Noch kein Eintrag.' }];
+    if (dx) {
+      detailLines = lines(dx);
+      if (dx.weight) detailLines.push({ text: 'Gewicht: ' + dx.weight + ' kg' });
+      if (dx.note) detailLines.push({ text: 'Notiz: ' + dx.note });
+    }
+
+    const keys = Object.keys(st.entries).sort();
+    const monthKeys = keys.filter((k) => k.slice(0, 7) === st.month && k <= today);
+
+    const stats = [];
+    catalog.forEach((c) => c.all.forEach((label) => {
+      const n = monthKeys.filter((k) => st.entries[k].sel.indexOf(label) > -1).length;
+      if (n) stats.push({ label: label, n: n, color: c.color, count: n + (n === 1 ? ' Tag' : ' Tage') });
+    }));
+    stats.sort((a, b) => b.n - a.n);
+    stats.forEach((s) => { s.width = Math.round(s.n / stats[0].n * 100) + '%'; });
+
+    const ws = monthKeys.filter((k) => st.entries[k].weight).map((k) => Number(st.entries[k].weight.replace(',', '.')));
+    const lo = ws.length ? Math.min.apply(null, ws) - 0.2 : 0;
+    const hi = ws.length ? Math.max.apply(null, ws) + 0.2 : 1;
+    const linePoints = ws.map((w, i) => (6 + i * 308 / Math.max(1, ws.length - 1)).toFixed(1) + ',' + (92 - (w - lo) / (hi - lo) * 84).toFixed(1)).join(' ');
+    const kg = (w) => String(w).replace('.', ',') + ' kg';
+    const weightSummary = ws.length === 0 ? 'kein Wert' : ws.length === 1 ? kg(ws[0]) : kg(ws[0]) + ' → ' + kg(ws[ws.length - 1]);
+
+    const rows = monthKeys.map((k) => {
+      const x = st.entries[k];
+      return { date: shortDate(k), lines: x.sel.length ? lines(x) : [{ text: '–' }], weight: x.weight || '–', note: x.note || '–' };
+    });
+
+    const titles = { settings: 'Einstellungen', dogs: 'Meine Hunde', members: 'Gemeinsam verwalten', account: 'Mein Konto', entry: st.date === today ? 'Heute, 27. November' : st.date > today ? 'Termin: ' + longDate(st.date) : longDate(st.date), calendar: 'Kalender', trend: 'Verlauf', export: 'Monatsexport', profile: 'Hundeprofil', share: 'Profil teilen' };
+    const tiles = [
+      ['calendar', 'Kalender', 'M4 6h16v14H4zM4 10h16M8 3v5M16 3v5'],
+      ['trend', 'Verlauf', 'M4 18l5-6 4 3 7-9'],
+      ['export', 'Monatsexport', 'M12 3v12M7 10l5 5 5-5M5 20h14']
+    ].map((t) => ({ name: t[1], icon: t[2], pick: () => go(t[0]) }));
+    const sc = st.screen;
+
+    const stash = () => this.state.dogList.map((d) => d.id === this.state.activeId ? { id: d.id, profile: this.state.profile, entries: this.state.entries, members: this.state.members } : d);
+    const switchTo = (list, id, screen) => {
+      const d = list.find((x) => x.id === id);
+      go(screen, { dogList: list, activeId: id, profile: d.profile, entries: d.entries, members: d.members, day: today, month: current, parent: 'home', newDog: '', invite: '' });
+    };
+    const isMine = (d) => d.members.some((x) => x.me && x.role === 'Besitzer:in');
+    const guestStart = () => {
+      if (this.state.upgrade) { go('home', { upgrade: false, registering: false }); return; }
+      const list = stash();
+      const active = list.find((x) => x.id === this.state.activeId);
+      switchTo(list, (isMine(active) ? active : list.find(isMine)).id, 'home');
+      this.setState({ guest: true, registering: false });
+    };
+    const dogRows = st.dogList.filter((d) => !st.guest || d.id === st.activeId || isMine(d)).map((d) => {
+      const on = d.id === st.activeId;
+      const prof = on ? st.profile : d.profile;
+      const mem = on ? st.members : d.members;
+      const mine = mem.some((x) => x.me && x.role === 'Besitzer:in');
+      return { on: on, name: prof.name, border: on ? '#2F6B45' : '#FFFFFF', text: (on ? '✓ ausgewählt · ' : '') + (mine ? 'dein Hund' : 'mit dir geteilt'), pick: () => { if (on) go('home'); else switchTo(stash(), d.id, 'home'); } };
+    });
+    const isOwner = st.members.some((x) => x.me && x.role === 'Besitzer:in');
+    const others = st.members.filter((x) => !x.me && x.role !== 'Eingeladen');
+    const sub = (screen, parent) => () => go(screen, { parent: parent, confirmDelete: false });
+    const menu = [
+      ['profile', 'Hundeprofil', 'Angaben zu ' + dogName + ' ändern und teilen'],
+      ['members', 'Gemeinsam verwalten', st.guest ? 'Dafür brauchst du ein Konto' : 'Personen einladen'],
+      ['dogs', 'Meine Hunde', 'Hund wechseln oder hinzufügen'],
+      ['account', 'Mein Konto', st.guest ? 'Du nutzt die App ohne Konto' : 'Abmelden oder Konto löschen']
+    ].map((m) => ({ name: m[1], text: m[2], pick: sub(m[0], 'settings') }));
+
+    const weekdays = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+    const strip = [];
+    allMonths.forEach((mk) => {
+      for (let n = 1; n <= months[mk].len; n++) {
+        const k = key(mk, n);
+        const x = st.entries[k];
+        const on = st.day === k;
+        const future = k > today;
+        const bg = on ? '#DAEBDC' : '#FFFFFF';
+        strip.push({
+          n: n, on: on, weekday: k === today ? 'Heute' : n === 1 ? months[mk].name.slice(0, 3) : weekdays[new Date(months[mk].year, months[mk].num - 1, n).getDay()],
+          bg: bg, fg: future ? '#5F7066' : '#1C2E22', border: on ? '#2F6B45' : bg,
+          dots: x ? catalog.filter((c) => c.all.some((i) => x.sel.indexOf(i) > -1)).map((c) => ({ color: c.color })) : [],
+          aria: longDate(k) + (x ? ', mit Eintrag' : ', ohne Eintrag'),
+          pick: () => this.setState({ day: k, month: mk, msg: '' })
+        });
+      }
+    });
+    const hx = st.entries[st.day];
+    const isToday = st.day === today;
+
+    return {
+      isHome: sc === 'home', notHome: sc !== 'home' && sc !== 'login',
+      isLogin: sc === 'login', isSettings: sc === 'settings', isDogs: sc === 'dogs', isMembers: sc === 'members' && !st.guest, isAccount: sc === 'account' && !st.guest, isMembersHint: sc === 'members' && st.guest, isAccountGuest: sc === 'account' && st.guest,
+      guestStart: guestStart, guestLabel: st.upgrade ? 'Doch ohne Konto weitermachen' : 'Ohne Konto starten', createAccount: () => go('login', { upgrade: true, registering: true }),
+      deleteLocal: () => { go('login', { guest: false, upgrade: false, registering: false }); this.setState({ msg: 'Vorschau: Hier würden alle Daten auf dem Handy gelöscht.' }); },
+      goSettings: () => go('settings'), goDogs: sub('dogs', 'home'), menu: menu, dogRows: dogRows,
+      isShared: !st.guest && others.length > 0, sharedLine: 'Gemeinsam mit ' + others.map((x) => x.name).join(', '),
+      registering: st.registering, userName: st.userName, email: st.email,
+      loginTitle: st.registering ? 'Konto erstellen' : 'Anmelden', loginButton: st.registering ? 'Registrieren' : 'Anmelden', toggleLabel: st.registering ? 'Ich habe schon ein Konto' : 'Neues Konto erstellen',
+      setUserName: (ev) => this.setState({ userName: ev.target.value }), setEmail: (ev) => this.setState({ email: ev.target.value, msg: '' }),
+      toggleRegister: () => this.setState({ registering: !st.registering, msg: '' }),
+      login: () => {
+        if (this.state.email.indexOf('@') < 1) { this.setState({ msg: 'Bitte gib eine E-Mail-Adresse ein.' }); return; }
+        if (!this.state.upgrade) { go('home', { registering: false, guest: false }); return; }
+        const own = stash().filter(isMine).map((d) => Object.assign({}, d, { members: d.members.filter((x) => x.me) }));
+        const d = own.find((x) => x.id === this.state.activeId) || own[0];
+        go('members', { registering: false, guest: false, upgrade: false, parent: 'settings', dogList: own, activeId: d.id, profile: d.profile, entries: d.entries, members: d.members });
+        this.setState({ msg: 'Deine Einträge wurden übernommen.' });
+      },
+      forgot: () => this.setState({ msg: 'Vorschau: Hier käme eine E-Mail zum Zurücksetzen.' }),
+      newDog: st.newDog, setNewDog: (ev) => this.setState({ newDog: ev.target.value, msg: '' }),
+      addDog: () => {
+        const name = this.state.newDog.trim();
+        if (!name) { this.setState({ msg: 'Bitte gib einen Namen ein.' }); return; }
+        const id = 'dog' + Date.now();
+        const list = stash().concat({ id: id, profile: { name: name, birth: '', breed: '', meds: '', food: '', amount: '', info: '', vet: '', avatar: '' }, entries: {}, members: [{ name: 'Du', role: 'Besitzer:in', me: true }] });
+        switchTo(list, id, 'profile');
+      },
+      isOwner: isOwner, notOwner: !isOwner,
+      memberRows: st.members.map((x, i) => ({ name: x.name, role: x.role, removable: isOwner && !x.me, remove: () => this.setState({ members: st.members.filter((y, j) => j !== i), msg: x.name + ' wurde entfernt.' }) })),
+      invite: st.invite, setInvite: (ev) => this.setState({ invite: ev.target.value, msg: '' }),
+      sendInvite: () => {
+        const mail = this.state.invite.trim();
+        if (mail.indexOf('@') < 1) { this.setState({ msg: 'Bitte gib eine E-Mail-Adresse ein.' }); return; }
+        this.setState({ members: this.state.members.concat({ name: mail, role: 'Eingeladen' }), invite: '', msg: 'Vorschau: Es wird keine E-Mail verschickt.' });
+      },
+      logout: () => go('login', { guest: false, upgrade: false }),
+      confirmDelete: st.confirmDelete, askDelete: () => this.setState({ confirmDelete: true }), cancelDelete: () => this.setState({ confirmDelete: false }),
+      deleteAccount: () => { go('login', { guest: false, upgrade: false }); this.setState({ msg: 'Vorschau: Hier würde dein Konto gelöscht.' }); }, isEntry: sc === 'entry', isCalendar: sc === 'calendar', isTrend: sc === 'trend', isExport: sc === 'export', isProfile: sc === 'profile', isShare: sc === 'share',
+      isMonthly: sc === 'calendar' || sc === 'trend' || sc === 'export',
+      title: titles[sc] || '',
+      back: () => go(sc === 'share' ? 'profile' : sc === 'entry' ? st.back : ['profile', 'members', 'dogs', 'account'].indexOf(sc) > -1 ? st.parent : 'home'),
+      goProfile: sub('profile', 'home'), goShare: () => go('share'),
+      dogName: dogName, dogLine: dogLine, age: age, avatar: p.avatar, hasAvatar: !!p.avatar, noAvatar: !p.avatar,
+      msg: st.msg, hasMsg: !!st.msg,
+      strip: strip, stripRef: this.stripRef, stripMonth: months[st.day.slice(0, 7)].name + ' ' + st.day.slice(0, 4),
+      dayStatus: (isToday ? 'Heute' : longDate(st.day)) + (st.day > today ? (hx ? ': geplant' : ': noch kein Termin') : (hx ? ': eingetragen ✓' : ': noch kein Eintrag')),
+      homeLines: hx ? lines(hx) : [],
+      dayButton: isToday ? (hx ? 'Heutigen Tag bearbeiten' : 'Heutigen Tag eingeben') : st.day > today ? (hx ? 'Termin bearbeiten' : 'Termin eintragen') : longDate(st.day) + (hx ? ' bearbeiten' : ' eingeben'),
+      openSelected: () => openDay(st.day, 'home'),
+      tiles: tiles,
+      cats: cats, newName: st.newName, setNewName: (ev) => this.setState({ newName: ev.target.value }),
+      weight: st.draft.weight, setWeight: (ev) => setDraft({ weight: ev.target.value }),
+      note: st.draft.note, setNote: (ev) => setDraft({ note: ev.target.value }),
+      save: save,
+      notPlanning: !planning, noteLabel: planning ? 'Notiz zum Termin' : 'Weitere Notizen', saveLabel: planning ? 'Termin speichern' : 'Tag speichern',
+      monthName: m.name + ' ' + m.year,
+      prevLabel: monthButton(-1), nextLabel: monthButton(1),
+      prevMonth: () => showMonth(-1),
+      nextMonth: () => showMonth(1),
+      editLabel: st.day > today ? 'Termin eintragen oder ändern' : 'Diesen Tag eintragen oder ändern',
+      blanks: blanks, days: days, legend: catalog.map((c) => ({ color: c.color, short: c.short })),
+      detailTitle: longDate(st.day), detailLines: detailLines, editDay: () => openDay(st.day, 'calendar'),
+      stats: stats, noStats: !stats.length, linePoints: linePoints, hasLine: ws.length > 1, weightSummary: weightSummary,
+      rows: rows, period: '1.' + m.num + '.–' + (st.month === current ? dayOf(today) : m.len) + '.' + m.num + '.' + m.year, rowCount: rows.length + (rows.length === 1 ? ' Tag' : ' Tage') + ' mit Einträgen',
+      fakePdf: () => this.setState({ msg: 'Vorschau: Die PDF-Datei erzeugt erst die echte App.' }),
+      pName: p.name, pBirth: p.birth, pBreed: p.breed, pMeds: p.meds, pFood: p.food, pAmount: p.amount, pInfo: p.info, pVet: p.vet,
+      setName: setProfile('name'), setBirth: setProfile('birth'), setBreed: setProfile('breed'), setMeds: setProfile('meds'), setFood: setProfile('food'), setAmount: setProfile('amount'), setInfo: setProfile('info'), setVet: setProfile('vet'),
+      photoSheet: st.photoSheet && sc === 'profile', openPhoto: () => this.setState({ photoSheet: true, msg: '' }), closePhoto: () => this.setState({ photoSheet: false }),
+      removeAvatar: () => this.setState({ photoSheet: false, profile: Object.assign({}, this.state.profile, { avatar: '' }) }),
+      setAvatar: (ev) => { const f = ev.target.files && ev.target.files[0]; if (f) this.setState({ photoSheet: false, profile: Object.assign({}, this.state.profile, { avatar: URL.createObjectURL(f) }) }); },
+      saveProfile: () => this.setState({ msg: 'Profil gespeichert.' }),
+      facts: [['Geburtstag', p.birth ? dayOf(p.birth) + '.' + monthOf(p.birth) + '.' + p.birth.slice(0, 4) : ''], ['Alter', p.birth ? age : ''], ['Rasse', p.breed], ['Medikamente', p.meds], ['Futterart', p.food], ['Futtermenge', p.amount], ['Haustierarzt', p.vet], ['Wichtige weitere Infos', p.info]].map((f) => ({ label: f[0], value: f[1] || '–' })),
+      fakeWhatsapp: () => this.setState({ msg: 'Vorschau: Hier würde WhatsApp mit dem PDF aufgehen.' }),
+      fakeMail: () => this.setState({ msg: 'Vorschau: Hier würde eine E-Mail mit dem PDF aufgehen.' })
+    };
+  }
+}
+</script>
+</body>
+</html>
