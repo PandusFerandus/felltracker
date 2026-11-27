@@ -9,11 +9,14 @@ export function PrimaryButton({
   label,
   onPress,
   disabled,
+  small,
   style,
 }: {
   label: string;
   onPress(): void;
   disabled?: boolean;
+  /** Kleinere Ausführung, z. B. innerhalb einer Karte */
+  small?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
   return (
@@ -22,8 +25,8 @@ export function PrimaryButton({
       accessibilityState={{ disabled: !!disabled }}
       disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [styles.primary, (pressed || disabled) && styles.pressed, style]}>
-      <Text style={styles.primaryText}>{label}</Text>
+      style={({ pressed }) => [styles.primary, small && styles.primarySmall, (pressed || disabled) && styles.pressed, style]}>
+      <Text style={[styles.primaryText, small && styles.primaryTextSmall]}>{label}</Text>
     </Pressable>
   );
 }
@@ -71,6 +74,13 @@ export const styles = StyleSheet.create({
     fontSize: 19,
     color: colors.onPrimary,
     textAlign: 'center',
+  },
+  primarySmall: {
+    minHeight: 48,
+    borderRadius: 24,
+  },
+  primaryTextSmall: {
+    fontSize: 16,
   },
   pressed: {
     opacity: 0.8,

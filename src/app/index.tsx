@@ -18,10 +18,10 @@ import { colors, fonts, radius } from '@/theme';
 const LATER = 'Kommt in einem späteren Schritt.';
 
 const TILES = [
-  { name: 'Kalender', icon: 'M4 6h16v14H4zM4 10h16M8 3v5M16 3v5' },
-  { name: 'Verlauf', icon: 'M4 18l5-6 4 3 7-9' },
-  { name: 'Monatsexport', icon: 'M12 3v12M7 10l5 5 5-5M5 20h14' },
-];
+  { id: 'calendar', name: 'Kalender', icon: 'M4 6h16v14H4zM4 10h16M8 3v5M16 3v5' },
+  { id: 'trend', name: 'Verlauf', icon: 'M4 18l5-6 4 3 7-9' },
+  { id: 'export', name: 'Monatsexport', icon: 'M12 3v12M7 10l5 5 5-5M5 20h14' },
+] as const;
 
 export default function HomeScreen() {
   const { loading, error, activeDog, entries, flash, setFlash } = useAppData();
@@ -118,9 +118,15 @@ export default function HomeScreen() {
         <View style={styles.tiles}>
           {TILES.map((t) => (
             <Pressable
-              key={t.name}
+              key={t.id}
               accessibilityRole="button"
-              onPress={later}
+              onPress={() => {
+                setMsg(null);
+                setFlash(null);
+                if (t.id === 'calendar') router.push({ pathname: '/kalender', params: { tag: day } });
+                else if (t.id === 'trend') router.push({ pathname: '/verlauf', params: { monat: day <= today ? day.slice(0, 7) : today.slice(0, 7) } });
+                else later();
+              }}
               style={({ pressed }) => [styles.tile, pressed && ui.pressed]}>
               <LineIcon d={t.icon} />
               <Text style={styles.tileText}>{t.name}</Text>
