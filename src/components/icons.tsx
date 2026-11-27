@@ -60,3 +60,12 @@ export function CheckIcon({ size = 16, color = colors.onPrimary }: IconProps) {
     </Svg>
   );
 }
+
+export function CameraIcon({ size = 22, color = colors.onPrimary }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M4 8h3l2-3h6l2 3h3v11H4z" />
+      <Circle cx={12} cy={13} r={3.5} />
+    </Svg>
+  );
+}

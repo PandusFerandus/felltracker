@@ -23,6 +23,9 @@ type AppData = {
    */
   saveDay(date: DateKey, draft: Draft, future: boolean): Promise<{ result: 'saved' | 'deleted' } | { error: string }>;
   addCustomItem(category: CategoryId, label: string): Promise<{ item: SelectedItem; existed: boolean }>;
+  updateDog(id: string, changes: Partial<Omit<Dog, 'id' | 'species' | 'createdAt' | 'updatedAt'>>): Promise<Dog>;
+  /** Löscht alle Daten auf diesem Gerät. */
+  deleteAllData(): Promise<void>;
   /** Kurze Meldung für die Startseite, z. B. nach dem Speichern */
   flash: string | null;
   setFlash(msg: string | null): void;
@@ -117,6 +120,24 @@ export function AppDataProvider({ children, store = deviceStore }: { children: R
     [store],
   );
 
+  const updateDog = useCallback<AppData['updateDog']>(
+    async (id, changes) => {
+      const updated = await store.updateDog(id, changes);
+      setDogs((prev) => prev.map((d) => (d.id === id ? updated : d)));
+      return updated;
+    },
+    [store],
+  );
+
+  const deleteAllData = useCallback(async () => {
+    await store.clearAll();
+    setDogs([]);
+    setActiveDogId(null);
+    setEntries({});
+    setCustomItems([]);
+    setFlash(null);
+  }, [store]);
+
   const value = useMemo<AppData>(
     () => ({
       loading,
@@ -129,10 +150,12 @@ export function AppDataProvider({ children, store = deviceStore }: { children: R
       selectDog,
       saveDay,
       addCustomItem,
+      updateDog,
+      deleteAllData,
       flash,
       setFlash,
     }),
-    [loading, error, dogs, activeDogId, entries, customItems, createDog, selectDog, saveDay, addCustomItem, flash],
+    [loading, error, dogs, activeDogId, entries, customItems, createDog, selectDog, saveDay, addCustomItem, updateDog, deleteAllData, flash],
   );
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;

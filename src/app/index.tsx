@@ -4,7 +4,8 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DayStrip } from '@/components/day-strip';
-import { ChevronDownIcon, LineIcon, PawIcon, SettingsIcon } from '@/components/icons';
+import { Avatar } from '@/components/avatar';
+import { ChevronDownIcon, LineIcon, SettingsIcon } from '@/components/icons';
 import { PrimaryButton, StatusMessage, styles as ui } from '@/components/ui';
 import { useAppData } from '@/data/app-data';
 import { itemLines } from '@/data/catalog';
@@ -14,8 +15,6 @@ import { dayButtonLabel, dayStatus } from '@/data/day-labels';
 import type { DateKey } from '@/data/types';
 import { useToday } from '@/data/use-today';
 import { colors, fonts, radius } from '@/theme';
-
-const LATER = 'Kommt in einem späteren Schritt.';
 
 const TILES = [
   { id: 'calendar', name: 'Kalender', icon: 'M4 6h16v14H4zM4 10h16M8 3v5M16 3v5' },
@@ -51,9 +50,10 @@ export default function HomeScreen() {
   if (entry?.weightKg != null) lines.push(`Gewicht: ${formatWeight(entry.weightKg)} kg`);
   if (entry?.note) lines.push(`Notiz: ${entry.note}`);
   const dogLine = [activeDog.breed, ageLabel(activeDog.birthday, today)].filter(Boolean).join(' · ');
-  const later = () => {
+  const go = (href: Parameters<typeof router.push>[0]) => {
+    setMsg(null);
     setFlash(null);
-    setMsg(LATER);
+    router.push(href);
   };
 
   return (
@@ -65,7 +65,7 @@ export default function HomeScreen() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Einstellungen"
-          onPress={later}
+          onPress={() => go('/einstellungen')}
           style={({ pressed }) => [ui.iconButton, pressed && ui.pressed]}>
           <SettingsIcon />
         </Pressable>
@@ -87,15 +87,15 @@ export default function HomeScreen() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Hundeprofil öffnen"
-          onPress={later}
+          onPress={() => go('/profil')}
           style={({ pressed }) => [styles.avatar, pressed && ui.pressed]}>
-          <PawIcon />
+          <Avatar photo={activeDog.photo} size={180} />
         </Pressable>
 
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`Hund wechseln, ausgewählt: ${activeDog.name}`}
-          onPress={later}
+          onPress={() => go('/hunde')}
           style={({ pressed }) => [styles.nameButton, pressed && ui.pressed]}>
           <Text style={styles.name} numberOfLines={2}>
             {activeDog.name}
@@ -121,11 +121,10 @@ export default function HomeScreen() {
               key={t.id}
               accessibilityRole="button"
               onPress={() => {
-                setMsg(null);
-                setFlash(null);
-                if (t.id === 'calendar') router.push({ pathname: '/kalender', params: { tag: day } });
-                else if (t.id === 'trend') router.push({ pathname: '/verlauf', params: { monat: day <= today ? day.slice(0, 7) : today.slice(0, 7) } });
-                else later();
+                const monat = day <= today ? day.slice(0, 7) : today.slice(0, 7);
+                if (t.id === 'calendar') go({ pathname: '/kalender', params: { tag: day } });
+                else if (t.id === 'trend') go({ pathname: '/verlauf', params: { monat } });
+                else go({ pathname: '/export', params: { monat } });
               }}
               style={({ pressed }) => [styles.tile, pressed && ui.pressed]}>
               <LineIcon d={t.icon} />
@@ -184,15 +183,7 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   avatar: {
-    width: 180,
-    height: 180,
     borderRadius: 90,
-    borderWidth: 6,
-    borderColor: colors.card,
-    backgroundColor: colors.surfaceLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
   },
   nameButton: {
     minHeight: 48,

@@ -37,6 +37,14 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Felltracker braucht Zugriff auf deine Fotos, damit du ein Profilbild für deinen Hund auswählen kannst.",
+          "cameraPermission": "Felltracker braucht die Kamera, damit du ein Profilbild für deinen Hund aufnehmen kannst.",
+          "microphonePermission": false
+        }
       ]
     ],
     "experiments": {
