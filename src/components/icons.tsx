@@ -25,3 +25,30 @@ export function PawIcon({ size = 104, color = colors.primary }: { size?: number;
     </Svg>
   );
 }
+
+type IconProps = { size?: number; color?: string };
+
+export function ChevronDownIcon({ size = 22, color = colors.primary }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M6 9l6 6 6-6" />
+    </Svg>
+  );
+}
+
+export function BackIcon({ size = 24, color = colors.primary }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M15 5l-7 7 7 7" />
+    </Svg>
+  );
+}
+
+/** Einfaches Strich-Symbol aus einem SVG-Pfad (für die Kacheln der Startseite). */
+export function LineIcon({ d, size = 28, color = colors.primary }: IconProps & { d: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <Path d={d} />
+    </Svg>
+  );
+}

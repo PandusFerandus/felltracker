@@ -9,6 +9,7 @@ import { Nunito_500Medium } from '@expo-google-fonts/nunito/500Medium';
 import { Nunito_700Bold } from '@expo-google-fonts/nunito/700Bold';
 import { Nunito_800ExtraBold } from '@expo-google-fonts/nunito/800ExtraBold';
 
+import { AppDataProvider } from '@/data/app-data';
 import { colors } from '@/theme';
 
 SplashScreen.preventAutoHideAsync();
@@ -25,13 +26,15 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <StatusBar style="dark" />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: colors.background },
-        }}
-      />
+      <AppDataProvider>
+        <StatusBar style="dark" />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: colors.background },
+          }}
+        />
+      </AppDataProvider>
     </SafeAreaProvider>
   );
 }
