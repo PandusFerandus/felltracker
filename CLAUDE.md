@@ -11,9 +11,9 @@ Wo diese Anleitung vom Prototyp abweicht, gilt die Anleitung.
 ## 2. So arbeitest du mit mir
 
 - Ich kann **nicht programmieren**. Erkläre alles auf Deutsch, in einfachen Worten, mit "du".
-- Arbeite **einen Schritt nach dem anderen** (siehe Abschnitt 8). Höre nach jedem Schritt auf.
+- Arbeite in **größeren Paketen**: am besten eine ganze Etappe (siehe Abschnitt 8) auf einmal, mit einem Pull Request. Höre nach jedem Paket auf. Brauchst du vorher Entscheidungen oder Konten von mir, frage zuerst danach.
 - Prüfe vor dem Abschluss selbst: Typprüfung (`npx tsc --noEmit`), Tests für die Datenlogik, Web-Build. Sage ehrlich, was du nicht prüfen konntest.
-- Sage mir am Ende jedes Schritts: was fertig ist, was ich anklicken muss (z. B. Pull Request zusammenführen) und was ich ausprobieren soll.
+- Sage mir am Ende jedes Pakets: was fertig ist, was ich anklicken muss (z. B. Pull Request zusammenführen) und was ich ausprobieren soll.
 - Frage vorher, wenn etwas Geld kostet, Daten löscht oder von dieser Anleitung abweicht.
 - Keine Passwörter oder geheimen Schlüssel in den Code. Das Repository kann öffentlich sein.
 
