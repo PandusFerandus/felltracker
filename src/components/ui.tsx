@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View, type StyleProp, type TextInputProps, type ViewStyle } from 'react-native';
 
 import { colors, fonts, radius } from '@/theme';
 
@@ -29,6 +29,40 @@ export function PrimaryButton({
       <Text style={[styles.primaryText, small && styles.primaryTextSmall]}>{label}</Text>
     </Pressable>
   );
+}
+
+/** Heller Knopf mit grüner Schrift für Nebenaktionen. */
+export function SecondaryButton({ label, onPress, style }: { label: string; onPress(): void; style?: StyleProp<ViewStyle> }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [styles.secondary, pressed && styles.pressed, style]}>
+      <Text style={styles.secondaryText}>{label}</Text>
+    </Pressable>
+  );
+}
+
+/** Beschriftetes Eingabefeld. */
+export function Field({ label, multiline, ...input }: { label: string } & TextInputProps) {
+  return (
+    <View style={styles.field}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      <TextInput
+        accessibilityLabel={label}
+        placeholderTextColor={colors.textMuted}
+        multiline={multiline}
+        textAlignVertical={multiline ? 'top' : 'center'}
+        {...input}
+        style={[styles.input, multiline && styles.inputMulti, input.style]}
+      />
+    </View>
+  );
+}
+
+/** Weiße Karte */
+export function Card({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
+  return <View style={[styles.card, style]}>{children}</View>;
 }
 
 /** Kopfzeile von Unterseiten mit Zurück-Knopf und Titel. */
@@ -81,6 +115,52 @@ export const styles = StyleSheet.create({
   },
   primaryTextSmall: {
     fontSize: 16,
+  },
+  secondary: {
+    minHeight: 52,
+    borderRadius: 26,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    backgroundColor: colors.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  },
+  secondaryText: {
+    fontFamily: fonts.extraBold,
+    fontSize: 16,
+    color: colors.primary,
+    textAlign: 'center',
+  },
+  field: {
+    gap: 6,
+  },
+  fieldLabel: {
+    fontFamily: fonts.extraBold,
+    fontSize: 15,
+    color: colors.text,
+  },
+  input: {
+    minHeight: 50,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: colors.border,
+    backgroundColor: colors.card,
+    paddingHorizontal: 12,
+    fontFamily: fonts.medium,
+    fontSize: 16,
+    color: colors.text,
+  },
+  inputMulti: {
+    minHeight: 80,
+    paddingTop: 10,
+    paddingBottom: 10,
+  },
+  card: {
+    backgroundColor: colors.card,
+    borderRadius: radius.card,
+    padding: 16,
+    gap: 8,
   },
   pressed: {
     opacity: 0.8,

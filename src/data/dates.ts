@@ -95,3 +95,25 @@ export function ageLabel(birthday: DateKey | '', today: DateKey): string {
   const years = Math.floor(months / 12);
   return `${years} ${years === 1 ? 'Jahr' : 'Jahre'}`;
 }
+
+/** "2022-03-14" → "14.03.2022" */
+export function formatGermanDate(key: DateKey | ''): string {
+  if (!key || !isDateKey(key)) return '';
+  const [y, m, d] = key.split('-');
+  return `${d}.${m}.${y}`;
+}
+
+export type BirthdayResult = { ok: true; value: DateKey | '' } | { ok: false; message: string };
+
+/** Liest einen Geburtstag wie "14.3.2022" oder "14.03.2022". Leer ist erlaubt, Zukunft nicht. */
+export function parseBirthday(text: string, today: DateKey): BirthdayResult {
+  const raw = text.trim();
+  if (raw === '') return { ok: true, value: '' };
+  const m = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(raw);
+  if (!m) return { ok: false, message: 'Bitte gib den Geburtstag so ein: TT.MM.JJJJ, z. B. 14.03.2022.' };
+  const key = `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+  if (!isDateKey(key)) return { ok: false, message: 'Diesen Tag gibt es nicht. Bitte prüfe den Geburtstag.' };
+  if (key > today) return { ok: false, message: 'Der Geburtstag darf nicht in der Zukunft liegen.' };
+  if (key < '1980-01-01') return { ok: false, message: 'Bitte prüfe das Jahr des Geburtstags.' };
+  return { ok: true, value: key };
+}
