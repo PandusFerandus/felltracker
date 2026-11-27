@@ -2,7 +2,8 @@
 // Die Bildschirme benutzen ausschließlich das Interface `DataStore`.
 // In Etappe 2 kommt eine zweite Umsetzung dazu, die mit dem Server abgleicht.
 
-import type { AppSettings, CustomItem, DateKey, DayEntry, Dog, Species } from './types';
+import { findExistingItem } from './entry-logic';
+import type { AppSettings, CategoryId, CustomItem, DateKey, DayEntry, Dog, SelectedItem, Species } from './types';
 
 export interface DataStore {
   listDogs(): Promise<Dog[]>;
@@ -16,6 +17,11 @@ export interface DataStore {
   deleteEntry(dogId: string, date: DateKey): Promise<void>;
 
   listCustomItems(): Promise<CustomItem[]>;
+  /**
+   * Legt einen eigenen Punkt an. Gibt es den Namen schon (Groß-/Kleinschreibung egal),
+   * wird nichts angelegt und der vorhandene Punkt zurückgegeben.
+   */
+  addCustomItem(input: { species?: Species; category: CategoryId; label: string }): Promise<{ item: SelectedItem; existed: boolean }>;
 
   getSettings(): Promise<AppSettings>;
   setActiveDog(id: string | null): Promise<void>;
@@ -127,6 +133,17 @@ export function createLocalStore(
 
     async listCustomItems() {
       return read<CustomItem[]>(KEYS.customItems, []);
+    },
+
+    async addCustomItem({ species = 'dog', category, label }) {
+      const trimmed = label.trim().replace(/\s+/g, ' ');
+      if (!trimmed) throw new Error('Name fehlt');
+      const custom = await read<CustomItem[]>(KEYS.customItems, []);
+      const existing = findExistingItem(species, trimmed, custom);
+      if (existing) return { item: existing, existed: true };
+      const item: CustomItem = { id: deps.newId(), species, category, label: trimmed, createdAt: now() };
+      await write(KEYS.customItems, [...custom, item]);
+      return { item: { category, label: trimmed }, existed: false };
     },
 
     async getSettings() {

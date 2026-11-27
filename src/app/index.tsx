@@ -1,4 +1,4 @@
-import { Redirect } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,6 +9,7 @@ import { PrimaryButton, StatusMessage, styles as ui } from '@/components/ui';
 import { useAppData } from '@/data/app-data';
 import { itemLines } from '@/data/catalog';
 import { ageLabel, monthYearLabel } from '@/data/dates';
+import { formatWeight } from '@/data/entry-logic';
 import { dayButtonLabel, dayStatus } from '@/data/day-labels';
 import type { DateKey } from '@/data/types';
 import { useToday } from '@/data/use-today';
@@ -23,7 +24,7 @@ const TILES = [
 ];
 
 export default function HomeScreen() {
-  const { loading, error, activeDog, entries } = useAppData();
+  const { loading, error, activeDog, entries, flash, setFlash } = useAppData();
   const today = useToday();
   const [picked, setPicked] = useState<DateKey | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
@@ -47,10 +48,13 @@ export default function HomeScreen() {
   const day = picked ?? today;
   const entry = entries[day];
   const lines = entry ? itemLines(activeDog.species, entry.items) : [];
-  if (entry?.weightKg != null) lines.push(`Gewicht: ${String(entry.weightKg).replace('.', ',')} kg`);
+  if (entry?.weightKg != null) lines.push(`Gewicht: ${formatWeight(entry.weightKg)} kg`);
   if (entry?.note) lines.push(`Notiz: ${entry.note}`);
   const dogLine = [activeDog.breed, ageLabel(activeDog.birthday, today)].filter(Boolean).join(' · ');
-  const later = () => setMsg(LATER);
+  const later = () => {
+    setFlash(null);
+    setMsg(LATER);
+  };
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -75,6 +79,7 @@ export default function HomeScreen() {
         onSelect={(d) => {
           setPicked(d === today ? null : d);
           setMsg(null);
+          setFlash(null);
         }}
       />
 
@@ -108,7 +113,7 @@ export default function HomeScreen() {
           ))}
         </View>
 
-        {msg != null && <StatusMessage>{msg}</StatusMessage>}
+        {(msg ?? flash) != null && <StatusMessage>{msg ?? flash}</StatusMessage>}
 
         <View style={styles.tiles}>
           {TILES.map((t) => (
@@ -125,7 +130,11 @@ export default function HomeScreen() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <PrimaryButton label={dayButtonLabel(day, today, !!entry)} onPress={() => setMsg('Kommt im nächsten Schritt.')} style={styles.mainButton} />
+        <PrimaryButton label={dayButtonLabel(day, today, !!entry)} onPress={() => {
+            setMsg(null);
+            setFlash(null);
+            router.push({ pathname: '/tag/[date]', params: { date: day } });
+          }} style={styles.mainButton} />
       </View>
     </SafeAreaView>
   );

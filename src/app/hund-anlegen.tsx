@@ -47,7 +47,7 @@ export default function CreateDogScreen() {
               Lege zuerst deinen Hund an. Der Name genügt, alles Weitere kannst du später ergänzen.
             </Text>
           )}
-          <Text nativeID="dogNameLabel" style={styles.label}>
+          <Text style={styles.label}>
             Name des Hundes
           </Text>
           <TextInput
@@ -57,7 +57,6 @@ export default function CreateDogScreen() {
               setMsg(null);
             }}
             accessibilityLabel="Name des Hundes"
-            accessibilityLabelledBy="dogNameLabel"
             placeholder="z. B. Bella"
             placeholderTextColor={colors.textMuted}
             autoCapitalize="words"
