@@ -30,6 +30,23 @@ export interface DataStore {
   clearAll(): Promise<void>;
 }
 
+/**
+ * Erweiterter Zugriff für den Abgleich mit dem Server. Die Bildschirme nutzen das nicht.
+ */
+export interface LocalStore extends DataStore {
+  /** Hund unverändert speichern (z. B. vom Server übernommen) */
+  putDog(dog: Dog): Promise<void>;
+  /** Hund samt Einträgen nur auf diesem Gerät entfernen */
+  removeDogLocally(id: string): Promise<void>;
+  /** Eintrag unverändert speichern (z. B. vom Server übernommen) */
+  putEntry(entry: DayEntry): Promise<void>;
+  removeEntryLocally(dogId: string, date: DateKey): Promise<void>;
+  setCustomItems(items: CustomItem[]): Promise<void>;
+  setMode(mode: AppSettings['mode']): Promise<void>;
+  readJson<T>(name: string, fallback: T): Promise<T>;
+  writeJson(name: string, value: unknown): Promise<void>;
+}
+
 /** Das Nötigste von AsyncStorage, damit Tests einen einfachen Ersatz nutzen können. */
 export interface KeyValueStorage {
   getItem(key: string): Promise<string | null>;
@@ -51,7 +68,7 @@ const DEFAULT_SETTINGS: AppSettings = { activeDogId: null };
 export function createLocalStore(
   kv: KeyValueStorage,
   deps: { newId: () => string; now?: () => Date },
-): DataStore {
+): LocalStore {
   const now = () => (deps.now ? deps.now() : new Date()).toISOString();
 
   async function read<T>(key: string, fallback: T): Promise<T> {
@@ -154,6 +171,42 @@ export function createLocalStore(
       const settings = { ...DEFAULT_SETTINGS, ...(await read<Partial<AppSettings>>(KEYS.settings, {})) };
       await write(KEYS.settings, { ...settings, activeDogId: id });
     },
+
+    async putDog(dog) {
+      const dogs = await read<Dog[]>(KEYS.dogs, []);
+      const index = dogs.findIndex((d) => d.id === dog.id);
+      await write(KEYS.dogs, index < 0 ? [...dogs, dog] : dogs.map((d) => (d.id === dog.id ? dog : d)));
+    },
+
+    async removeDogLocally(id) {
+      const dogs = await read<Dog[]>(KEYS.dogs, []);
+      await write(KEYS.dogs, dogs.filter((d) => d.id !== id));
+      await kv.removeItem(KEYS.entries(id));
+    },
+
+    async putEntry(entry) {
+      const all = await read<Record<DateKey, DayEntry>>(KEYS.entries(entry.dogId), {});
+      await write(KEYS.entries(entry.dogId), { ...all, [entry.date]: entry });
+    },
+
+    async removeEntryLocally(dogId, date) {
+      const all = await read<Record<DateKey, DayEntry>>(KEYS.entries(dogId), {});
+      if (!(date in all)) return;
+      const { [date]: _removed, ...rest } = all;
+      await write(KEYS.entries(dogId), rest);
+    },
+
+    async setCustomItems(items) {
+      await write(KEYS.customItems, items);
+    },
+
+    async setMode(mode) {
+      const settings = { ...DEFAULT_SETTINGS, ...(await read<Partial<AppSettings>>(KEYS.settings, {})) };
+      await write(KEYS.settings, { ...settings, mode });
+    },
+
+    readJson: (name, fallback) => read(`${PREFIX}${name}`, fallback),
+    writeJson: (name, value) => write(`${PREFIX}${name}`, value),
 
     async clearAll() {
       const keys = await kv.getAllKeys();

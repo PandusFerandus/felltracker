@@ -7,12 +7,12 @@ import { useAppData } from '@/data/app-data';
 import { colors, fonts, radius } from '@/theme';
 
 export default function SettingsScreen() {
-  const { activeDog } = useAppData();
+  const { activeDog, account } = useAppData();
   const items: { href: Href; name: string; text: string }[] = [
     { href: '/profil', name: 'Hundeprofil', text: `Angaben zu ${activeDog?.name ?? 'deinem Hund'} ändern und teilen` },
-    { href: '/gemeinsam', name: 'Gemeinsam verwalten', text: 'Dafür brauchst du ein Konto' },
+    { href: '/gemeinsam', name: 'Gemeinsam verwalten', text: account ? 'Personen einladen' : 'Dafür brauchst du ein Konto' },
     { href: '/hunde', name: 'Meine Hunde', text: 'Hund wechseln oder hinzufügen' },
-    { href: '/konto', name: 'Mein Konto', text: 'Du nutzt die App ohne Konto' },
+    { href: '/konto', name: 'Mein Konto', text: account ? 'Abmelden oder Konto löschen' : 'Du nutzt die App ohne Konto' },
   ];
   return (
     <SafeAreaView style={styles.screen}>

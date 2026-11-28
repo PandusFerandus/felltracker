@@ -23,7 +23,7 @@ const TILES = [
 ] as const;
 
 export default function HomeScreen() {
-  const { loading, error, activeDog, entries, flash, setFlash } = useAppData();
+  const { loading, error, mode, guestDataQuestion, waitingForFirstSync, activeDog, entries, flash, setFlash, notices, dismissNotices, invites } = useAppData();
   const today = useToday();
   const [picked, setPicked] = useState<DateKey | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
@@ -39,6 +39,16 @@ export default function HomeScreen() {
     return (
       <View style={styles.center}>
         <Text style={styles.subtitle}>{error}</Text>
+      </View>
+    );
+  }
+  if (mode === 'unset') return <Redirect href="/anmelden" />;
+  if (guestDataQuestion) return <Redirect href="/daten-uebernehmen" />;
+  if (!activeDog && waitingForFirstSync) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator color={colors.primary} accessibilityLabel="Wird geladen" />
+        <Text style={styles.subtitle}>Deine Daten werden geladen …</Text>
       </View>
     );
   }
@@ -103,6 +113,31 @@ export default function HomeScreen() {
           <ChevronDownIcon />
         </Pressable>
         {dogLine !== '' && <Text style={styles.subtitle}>{dogLine}</Text>}
+        {!!activeDog.sharedWith?.length && <Text style={styles.shared}>Gemeinsam mit {activeDog.sharedWith.join(', ')}</Text>}
+
+        {notices.length > 0 && (
+          <View style={styles.notice} role="status" accessibilityLiveRegion="polite">
+            {notices.map((n, i) => (
+              <Text key={i} style={styles.noticeText}>
+                {n}
+              </Text>
+            ))}
+            <Pressable accessibilityRole="button" onPress={dismissNotices} style={styles.noticeButton}>
+              <Text style={styles.noticeButtonText}>Verstanden</Text>
+            </Pressable>
+          </View>
+        )}
+
+        {invites.length > 0 && (
+          <Pressable accessibilityRole="button" onPress={() => go('/hunde')} style={styles.invite}>
+            <Text style={styles.inviteText}>
+              {invites.length === 1
+                ? `Neue Einladung: ${invites[0].dogName} gemeinsam verwalten`
+                : `${invites.length} neue Einladungen`}
+            </Text>
+            <Text style={styles.inviteLink}>Ansehen</Text>
+          </Pressable>
+        )}
 
         <View accessibilityLiveRegion="polite" style={styles.dayInfo}>
           <Text style={styles.status}>{dayStatus(day, today, !!entry)}</Text>
@@ -205,6 +240,37 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     textAlign: 'center',
   },
+  shared: {
+    fontFamily: fonts.bold,
+    fontSize: 14,
+    color: colors.text,
+    textAlign: 'center',
+  },
+  notice: {
+    alignSelf: 'stretch',
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    padding: 12,
+    gap: 6,
+  },
+  noticeText: { fontFamily: fonts.medium, fontSize: 14, color: colors.text },
+  noticeButton: { alignSelf: 'flex-end', minHeight: 44, justifyContent: 'center', paddingHorizontal: 12 },
+  noticeButtonText: { fontFamily: fonts.extraBold, fontSize: 15, color: colors.primary },
+  invite: {
+    alignSelf: 'stretch',
+    minHeight: 52,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: colors.surfaceLight,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  inviteText: { flex: 1, fontFamily: fonts.bold, fontSize: 14, color: colors.text },
+  inviteLink: { fontFamily: fonts.extraBold, fontSize: 14, color: colors.primary },
   dayInfo: {
     alignSelf: 'stretch',
     gap: 2,

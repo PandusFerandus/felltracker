@@ -1,8 +1,8 @@
-# Felltracker – Bauanleitung
+# Felltagebuch – Bauanleitung
 
 ## 1. Worum es geht
 
-Felltracker ("dein Hundetagebuch") ist eine Tagebuch-App für Hunde, vom Prinzip ähnlich wie die Perioden-App Flo: Man tippt pro Tag an, was war, und sieht den Verlauf. Später soll die App auch für Katzen oder andere Tiere erweiterbar sein. Ziel: Apple App Store und Google Play. Die App bringt kein Geld ein, laufende Kosten sollen möglichst bei null liegen.
+Felltagebuch ("dein Hundetagebuch", früherer Arbeitsname: Felltracker) ist eine Tagebuch-App für Hunde, vom Prinzip ähnlich wie die Perioden-App Flo: Man tippt pro Tag an, was war, und sieht den Verlauf. Später soll die App auch für Katzen oder andere Tiere erweiterbar sein. Ziel: Apple App Store und Google Play. Die App bringt kein Geld ein, laufende Kosten sollen möglichst bei null liegen.
 
 Vorlage ist `prototyp.dc.html` in diesem Repository. Es ist der klickbare Prototyp: Im Markup stehen Aufbau, Texte, Farben und Abstände, im Skript unten das Verhalten. Die Datei läuft nicht eigenständig, sie ist nur zum Lesen da. Beispieldaten (Bella, Milo, Kim, Alex), das feste Datum 27.11.2026 und alle "Vorschau:"-Meldungen gehören **nicht** in die echte App.
 
@@ -16,6 +16,7 @@ Wo diese Anleitung vom Prototyp abweicht, gilt die Anleitung.
 - Sage mir am Ende jedes Pakets: was fertig ist, was ich anklicken muss (z. B. Pull Request zusammenführen) und was ich ausprobieren soll.
 - Frage vorher, wenn etwas Geld kostet, Daten löscht oder von dieser Anleitung abweicht.
 - Keine Passwörter oder geheimen Schlüssel in den Code. Das Repository kann öffentlich sein.
+- Das Repository heißt (noch) `felltracker`; interne Speichernamen (`felltracker:v1:…`) bleiben so, damit vorhandene Daten erhalten bleiben.
 
 ## 3. Technik
 
@@ -110,6 +111,13 @@ In Etappe 1 zeigen "Konto erstellen" nur den Hinweis "Kommt bald".
 - "Konto löschen" in der App löscht die Daten auch auf dem Server. Vorher mit mir klären, was mit geteilten Hunden passiert, wenn die Besitzerperson ihr Konto löscht.
 - Gäste ohne Konto senden keine Daten an den Server.
 
+**Entschieden (Etappe 2):**
+- Löscht die Besitzerperson ihr Konto, geht ein geteilter Hund an die Person über, die am längsten mitverwaltet. Hunde ohne weitere Personen werden mit allen Einträgen gelöscht.
+- E-Mails (Bestätigung, Passwort vergessen) laufen über einen eigenen kostenlosen SMTP-Dienst (Brevo). Die App nutzt einen Code aus der E-Mail statt eines Links. Einrichtung: `docs/SUPABASE-EINRICHTEN.md`.
+- Mitverwaltende dürfen eintragen und das Hundeprofil ändern; nur die Besitzerperson lädt ein und entfernt.
+- Meldet man sich mit einem bestehenden Konto an und es gibt Daten ohne Konto auf dem Gerät, fragt die App, ob sie übernommen werden sollen. Beim Erstellen eines Kontos werden sie automatisch übernommen.
+- Datenbank-Schema und Zugriffsregeln: `supabase/migrations/`, Tests dazu: `supabase/tests/` (`npm run test:db`, braucht PostgreSQL).
+
 ## 8. Etappen
 
 **Etappe 1 – App ohne Konto**
@@ -123,6 +131,6 @@ In Etappe 1 zeigen "Konto erstellen" nur den Hinweis "Kommt bald".
 **Etappe 2 – Konten und gemeinsames Verwalten** (Abschnitt 7)
 
 **Etappe 3 – Veröffentlichung**
-App-Symbol, Startbild, Datenschutzerklärung, Impressum, Hinweis "ersetzt keinen Tierarzt", Konto-Löschung prüfen, Test auf echten Handys, Store-Einträge. Aktuelle Anforderungen von Apple und Google vorher nachlesen (Gebühren, Testpflicht für neue Google-Konten, Angaben zum Datenschutz). Der Name "Felltracker" ist ein Arbeitsname: Vor der Veröffentlichung an die Markenprüfung erinnern.
+App-Symbol, Startbild, Datenschutzerklärung, Impressum, Hinweis "ersetzt keinen Tierarzt", Konto-Löschung prüfen, Test auf echten Handys, Store-Einträge. Aktuelle Anforderungen von Apple und Google vorher nachlesen (Gebühren, Testpflicht für neue Google-Konten, Angaben zum Datenschutz). Vor der Veröffentlichung an die Markenprüfung für den Namen "Felltagebuch" erinnern.
 
 **Nicht bauen:** Push-Benachrichtigungen, Werbung, Tracking oder Analyse-Dienste, Bezahlfunktionen.

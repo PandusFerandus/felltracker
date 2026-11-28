@@ -39,7 +39,7 @@ export default function ShareProfileScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.hint}>So sieht das PDF aus:</Text>
         <Card style={styles.preview}>
-          <Text style={styles.brand}>Felltracker · Hundeprofil</Text>
+          <Text style={styles.brand}>Felltagebuch · Hundeprofil</Text>
           <Avatar photo={dog.photo} size={110} />
           <Text style={styles.name}>{dog.name}</Text>
           {profileFacts(dog, today).map((f) => (
