@@ -68,7 +68,7 @@ export function monthReportHtml(opts: { dog: Dog; month: MonthKey; entries: DayE
   th.items { width: 45%; }
   .count { margin-top: 10pt; }
 </style></head><body>
-  <div class="brand">Felltracker · Monatsübersicht</div>
+  <div class="brand">Felltagebuch · Monatsübersicht</div>
   <h1>${escapeHtml(dog.name)}</h1>
   ${line ? `<div class="meta muted">${escapeHtml(line)}</div>` : ''}
   <div class="meta muted">Zeitraum: ${periodLabel(month, today)} · erstellt am ${formatGermanDate(today)}</div>
@@ -111,7 +111,7 @@ export function profileHtml(opts: { dog: Dog; today: DateKey }): string {
   .label { color: #4F6356; font-size: 9.5pt; font-weight: 700; }
   .value { margin-top: 2pt; overflow-wrap: anywhere; }
 </style></head><body>
-  <div class="brand">Felltracker · Hundeprofil</div>
+  <div class="brand">Felltagebuch · Hundeprofil</div>
   ${photo}
   <h1>${escapeHtml(dog.name)}</h1>
   <div class="meta muted">erstellt am ${formatGermanDate(today)}</div>

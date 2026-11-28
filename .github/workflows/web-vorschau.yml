@@ -1,5 +1,6 @@
 # Baut bei jeder Änderung auf main die Web-Version und veröffentlicht sie
 # über GitHub Pages: https://pandusferandus.github.io/felltracker/
+# Vorher laufen Typprüfung, Tests und die Tests der Datenbank-Zugriffsregeln.
 name: Web-Vorschau
 
 on:
@@ -19,6 +20,19 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      # Leere Test-Datenbank, um die Zugriffsregeln für Supabase zu prüfen
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -30,6 +44,10 @@ jobs:
         run: npm run typecheck
       - name: Tests
         run: npm test
+      - name: Tests der Zugriffsregeln (Datenbank)
+        run: npm run test:db
+        env:
+          DATABASE_URL: postgres://postgres@localhost:5432/postgres
       - name: Web-Version bauen
         run: npm run build:web
       - name: Für GitHub Pages vorbereiten

@@ -9,7 +9,7 @@ import { useAppData } from '@/data/app-data';
 import { colors, fonts, radius } from '@/theme';
 
 export default function CreateDogScreen() {
-  const { dogs, createDog } = useAppData();
+  const { dogs, createDog, account } = useAppData();
   const [name, setName] = useState('');
   const [msg, setMsg] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -67,7 +67,7 @@ export default function CreateDogScreen() {
             style={styles.input}
           />
           {msg != null && <StatusMessage>{msg}</StatusMessage>}
-          {first && <Text style={styles.hint}>Deine Daten bleiben nur auf diesem Handy.</Text>}
+          {first && <Text style={styles.hint}>{account ? 'Dein Hund wird in deinem Konto gespeichert.' : 'Deine Daten bleiben nur auf diesem Gerät.'}</Text>}
         </ScrollView>
         <View style={styles.footer}>
           <PrimaryButton label="Hund anlegen" onPress={save} disabled={saving} />

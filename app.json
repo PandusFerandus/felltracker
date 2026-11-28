@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Felltracker",
-    "slug": "felltracker",
+    "name": "Felltagebuch",
+    "slug": "felltagebuch",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "felltracker",
+    "scheme": "felltagebuch",
     "userInterfaceStyle": "light",
     "backgroundColor": "#F0F6EF",
     "ios": {
@@ -22,7 +22,7 @@
     },
     "web": {
       "output": "single",
-      "name": "Felltracker",
+      "name": "Felltagebuch",
       "lang": "de",
       "themeColor": "#2F6B45",
       "backgroundColor": "#F0F6EF",
@@ -41,8 +41,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Felltracker braucht Zugriff auf deine Fotos, damit du ein Profilbild für deinen Hund auswählen kannst.",
-          "cameraPermission": "Felltracker braucht die Kamera, damit du ein Profilbild für deinen Hund aufnehmen kannst.",
+          "photosPermission": "Felltagebuch braucht Zugriff auf deine Fotos, damit du ein Profilbild für deinen Hund auswählen kannst.",
+          "cameraPermission": "Felltagebuch braucht die Kamera, damit du ein Profilbild für deinen Hund aufnehmen kannst.",
           "microphonePermission": false
         }
       ]

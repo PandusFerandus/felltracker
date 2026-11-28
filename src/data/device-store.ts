@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { randomUUID } from 'expo-crypto';
 
-import { createLocalStore } from './storage';
+import { createLocalStore, type LocalStore } from './storage';
 
 /** Speicher auf diesem Gerät (Handy oder Browser). */
-export const deviceStore = createLocalStore(AsyncStorage, { newId: randomUUID });
+export const deviceStore: LocalStore = createLocalStore(AsyncStorage, { newId: randomUUID });

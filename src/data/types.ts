@@ -29,6 +29,10 @@ export type Dog = {
   photo: string;
   createdAt: string;
   updatedAt: string;
+  /** Konto der Besitzerperson; fehlt bei Hunden ohne Konto (nur auf diesem Gerät) */
+  ownerId?: string | null;
+  /** Namen der anderen Personen, die den Hund mitverwalten */
+  sharedWith?: string[];
 };
 
 /** Ein angetippter Punkt eines Tages, z. B. { category: 'skin', label: 'Juckreiz' }. */
@@ -59,4 +63,6 @@ export type CustomItem = {
 
 export type AppSettings = {
   activeDogId: string | null;
+  /** 'guest' = ohne Konto, 'account' = mit Konto; fehlt, solange noch nichts gewählt wurde */
+  mode?: 'guest' | 'account';
 };

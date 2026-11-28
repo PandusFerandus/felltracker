@@ -55,7 +55,7 @@ export default function ExportScreen() {
       />
       <ScrollView contentContainerStyle={styles.content}>
         <Card style={styles.preview}>
-          <Text style={styles.brand}>Felltracker · Monatsübersicht</Text>
+          <Text style={styles.brand}>Felltagebuch · Monatsübersicht</Text>
           <Text style={styles.name}>{dog.name}</Text>
           {line !== '' && <Text style={styles.meta}>{line}</Text>}
           <Text style={styles.meta}>
